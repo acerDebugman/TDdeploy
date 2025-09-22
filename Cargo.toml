@@ -3,4 +3,98 @@ name = "TDdeploy"
 version = "0.1.0"
 edition = "2024"
 
-[dependencies]
+[workspace]
+members = [
+    "crates/jira_case",
+    "crates/arsenal"
+]
+exclude = []
+
+[workspace.dependencies]
+anyhow = "1"
+#tokio = { version = ">=1.39.3", features = ["rt-multi-thread", "macros", "rt"] }
+tokio = { version = "1.45.1", features = [
+   "rt",
+   "rt-multi-thread",
+   "io-util",
+   "io-std",
+   "net",
+   "time",
+   "process",
+   "macros",
+   "sync",
+   "signal",
+   "fs",
+] }
+#tokio = "1.39.3"
+notify = "6.1.1"
+tokio-util = "0.7.16"
+futures = "0.3"
+tokio-stream = "0.1"
+actix-web = "4.11.0"
+rand = "0.8"
+rayon = { version = "1" }
+deadpool = "0.10"
+#deadpool = "0.12"
+deadpool-tiberius = "=0.1.8"
+tiberius = { version = "0.12.2", default-features = false, features = [
+  "chrono",
+  "tds73",
+  "time",
+  "winauth",
+  "bigdecimal",
+] }
+linked-hash-map = { version = "0.5.6", features = ["serde_impl"] }
+chrono = { version = "0.4.37", features = ["serde"]}
+chrono-tz = { version = "0.10.1" }
+fundu = "2.0.1"
+arrow = { version = "55", features = ["chrono-tz", "ipc_compression", "prettyprint"] }
+arrow-flight = { version = "55" }
+arrow-ipc = { version = "55" }
+arrow-schema = { version = "55", features = ["serde"] }
+#arrow-compute-ext = { path = "crates/arrow-compute-ext" }
+#arrow-cast-guess-precision = { path = "crates/arrow-cast-guess-precision" }
+serde_arrow = { version = "0.13.3", features = ["arrow-55"] }
+parquet = "55"
+prost = "0.14"
+prost-types = "0.14"
+tonic = "0.12.3"
+
+itertools = { version = "0.14.0" }
+rdkafka = { version = "0.36", features = ["cmake-build"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+regex = { version = "1.11.0" }
+tempfile = "3.13.0"
+tinytemplate = { git = "https://github.com/bitcapybara/TinyTemplate.git", rev = "9085af2b9c824e670750369827b9d6bbf24ae876" }
+chardetng = "0.1.17"
+encoding_rs = "0.8.35"
+flate2 = "1.1.2"
+bytes = "1.10.1"
+flume = "0.11.1"
+base64 = "0.21.7"  # 使用最新版本
+rhai = { version = "1.18.0", features = ["sync"] }
+dateparser = "0.2.1" # 选择合适的版本
+
+log = "0.4"
+pretty_env_logger = "0.5.0"
+async-compression = { version = "0.4", features = ["all"] }
+bitflags = "2"
+async-trait = "0.1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3" }
+tracing-opentelemetry = { version = "0.31" }
+
+
+taosx-core = { path = "/home/algo/rust_space/taosx/taosx-core" }
+taosx-ipc = { path = "/home/algo/rust_space/taosx/taosx-ipc" }
+
+[dependencies.taos]
+# path = "../taos-connector-rust/taos"
+rev = "0e47990"
+git = "https://github.com/taosdata/taos-connector-rust.git"
+default-features = false
+features = ["ws", "optin", "deadpool"]
+
+[dev-dependencies]
+assert_cmd = "2.0.17"
