@@ -3,8 +3,8 @@ use taos::*;
 
 
 pub async fn td_blob_data() -> anyhow::Result<()> {
-    let dsn = "taos://192.168.2.131:6030";
-    // let dsn = "taos://172.18.0.2:6030";
+    //let dsn = "taos://192.168.2.131:6030";
+    let dsn = "taos://127.0.0.1:6030";
 
     let pool = TaosBuilder::from_dsn(dsn)?.pool()?;
 
@@ -26,7 +26,8 @@ pub async fn td_blob_data() -> anyhow::Result<()> {
         "create stable meters(ts timestamp, id int, voltage int, v_blob blob) tags(groupid int, location varchar(24));",
         // create child table
         // "CREATE TABLE `d0` USING `meters` TAGS(0, 'Los Angles')",
-        r#"INSERT INTO `t1` using `meters` (`groupid`,`location`) tags(1,"BJ") (`ts`,`id`,`voltage`,`v_blob`) values(1751538339000,1,11,'0x255044462D312E330D0A')"#,
+        //r#"INSERT INTO `t1` using `meters` (`groupid`,`location`) tags(1,"BJ") (`ts`,`id`,`voltage`,`v_blob`) values(1751538339000,1,11,'0x255044462D312E330D0A')"#,
+        r#"INSERT INTO `t1` using `meters` (`groupid`,`location`) tags(1,"BJ") (`ts`,`id`,`voltage`,`v_blob`) values(now,1,11,'0x255044462D312E330D0A')"#,
         // insert into child table
         // insert with NULL values
         // insert many records in a single sql

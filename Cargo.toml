@@ -86,8 +86,11 @@ tracing-subscriber = { version = "0.3" }
 tracing-opentelemetry = { version = "0.31" }
 
 
-taosx-core = { path = "/home/algo/rust_space/taosx/taosx-core" }
-taosx-ipc = { path = "/home/algo/rust_space/taosx/taosx-ipc" }
+#taosx-core = { path = "/home/algo/rust_space/taosx/taosx-core" }
+#taosx-ipc = { path = "/home/algo/rust_space/taosx/taosx-ipc" }
+taosx-core = { path = "../taosx/taosx-core" }
+taosx-ipc = { path = "../taosx/taosx-ipc" }
+
 
 [dependencies.taos]
 # path = "../taos-connector-rust/taos"
