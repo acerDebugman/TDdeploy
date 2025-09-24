@@ -120,7 +120,11 @@ pub async fn td_blob_data_big() -> anyhow::Result<()> {
     .await?;
 
     // 6M = 20 * 1000 * 300
-    let item = format!("0x{}", "255044462D312E330D0A".repeat(1000*300));
+    //let item = format!("0x{}", "255044462D312E330D0A".repeat(1000*300));
+    // 1M = 20 * 1000 * 150
+    //let item = format!("0x{}", "255044462D312E330D0A".repeat(1000*50));
+    let item = format!("0x{}", "255044462D312E330D0A".repeat(1000*20));
+    println!("item len: {}", item.len());
     let inserted = taos.exec_many([
         // create super table
         // "CREATE TABLE `meters` (`ts` TIMESTAMP, `current` FLOAT, `voltage` INT, `phase` FLOAT) TAGS (`groupid` INT, `location` BINARY(16))",
