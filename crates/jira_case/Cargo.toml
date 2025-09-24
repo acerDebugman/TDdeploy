@@ -4,3 +4,90 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+anyhow.workspace = true
+tokio = { workspace = true, features = [
+   "rt",
+   "rt-multi-thread",
+   "io-util",
+   "io-std",
+   "net",
+   "time",
+   "process",
+   "macros",
+   "sync",
+   "signal",
+   "fs",
+] }
+notify.workspace = true
+tokio-util.workspace = true
+futures.workspace = true
+tokio-stream.workspace = true
+actix-web.workspace = true
+rand.workspace = true
+rayon.workspace = true
+deadpool.workspace = true
+deadpool-tiberius.workspace = true
+tiberius = { workspace = true, default-features = false, features = [
+  "chrono",
+  "tds73",
+  "time",
+  "winauth",
+  "bigdecimal",
+] }
+linked-hash-map.workspace = true
+chrono = { workspace = true, features = ["serde"]}
+chrono-tz = { workspace = true }
+fundu.workspace = true
+arrow = { workspace = true, features = ["chrono-tz", "ipc_compression", "prettyprint"] }
+arrow-flight = { workspace = true }
+arrow-ipc.workspace = true 
+arrow-schema = { workspace = true, features = ["serde"] }
+#arrow-compute-ext = { path = "crates/arrow-compute-ext" }
+#arrow-cast-guess-precision = { path = "crates/arrow-cast-guess-precision" }
+serde_arrow = { workspace = true, features = ["arrow-55"] }
+parquet.workspace = true
+prost.workspace = true
+prost-types.workspace = true
+tonic.workspace = true
+
+itertools.workspace = true
+rdkafka = { workspace = true, features = ["cmake-build"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+regex = { workspace = true }
+tempfile.workspace = true
+tinytemplate = { git = "https://github.com/bitcapybara/TinyTemplate.git", rev = "9085af2b9c824e670750369827b9d6bbf24ae876" }
+chardetng.workspace = true
+encoding_rs.workspace = true
+flate2.workspace = true
+bytes.workspace = true
+flume.workspace = true
+base64.workspace = true
+rhai = { workspace = true, features = ["sync"] }
+dateparser.workspace = true
+
+log.workspace = true
+pretty_env_logger.workspace = true
+async-compression = { workspace = true, features = ["all"] }
+bitflags.workspace = true
+async-trait.workspace = true
+tracing.workspace = true
+tracing-subscriber = { workspace = true }
+tracing-opentelemetry = { workspace = true }
+
+
+taosx-core = { path = "/home/algo/rust_space/taosx/taosx-core" }
+taosx-ipc = { path = "/home/algo/rust_space/taosx/taosx-ipc" }
+
+# taos.workspace = true
+
+[dependencies.taos]
+# path = "../taos-connector-rust/taos"
+rev = "0e47990"
+git = "https://github.com/taosdata/taos-connector-rust.git"
+default-features = false
+features = ["ws", "optin", "deadpool"]
+
+[dev-dependencies]
+#assert_cmd.workspace = true
+assert_cmd = "2.0.17"
