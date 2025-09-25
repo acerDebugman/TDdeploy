@@ -1,0 +1,101 @@
+{
+    "global": {
+            "cache": {
+                    "max_size": "1GB",
+                    "location": "",
+                    "on_fail": "skip"
+            },
+            "archive": {
+                    "keep_days": "30d",
+                    "max_size": "1GB",
+                    "location": "",
+                    "on_fail": "rotate"
+            },
+            "database_connection_error": "cache",
+            "database_not_exist": "break",
+            "table_not_exist": "retry",
+            "primary_timestamp_overflow": "archive",
+            "primary_timestamp_null": "archive",
+            "primary_key_null": "archive",
+            "table_name_length_overflow": "archive",
+            "table_name_contains_illegal_char": {
+                    "replace_to": ""
+            },
+            "variable_not_exist_in_table_name_template": {
+                    "replace_to": ""
+            },
+            "field_name_not_found": "add_field",
+            "field_name_length_overflow": "archive",
+            "field_length_extend": true,
+            "field_length_overflow": "archive",
+            "ingesting_error": "archive",
+            "connection_timeout_in_second": "30s"
+    },
+    "parse": {
+            "id": {
+                    "as": "int"
+            },
+            "voltage": {
+                    "as": "int"
+            },
+            "v_blob": {
+                    "as": "blob"
+            },
+            "groupid": {
+                    "as": "int"
+            },
+            "location": {
+                    "as": "nchar(50)"
+            },
+            "time": {
+                    "as": "nchar(50)"
+            }
+    },
+    "model": {
+            "name": "t_${groupid}",
+            "using": "meters",
+            "tags": [
+                    "groupid",
+                    "location"
+            ],
+            "columns": [
+                    "ts",
+                    "id",
+                    "voltage",
+                    "v_blob",
+                    "time"
+            ]
+    },
+    "mutate": [{
+            "map": {
+                    "ts": {
+                            "cast": "time",
+                            "as": "TIMESTAMP(ms)"
+                    },
+                    "id": {
+                            "cast": "id",
+                            "as": "INT"
+                    },
+                    "voltage": {
+                            "cast": "voltage",
+                            "as": "INT"
+                    },
+                    "v_blob": {
+                            "cast": "v_blob",
+                            "as": "blob"
+                    },
+                    "time": {
+                            "cast": "time",
+                            "as": "VARCHAR"
+                    },
+                    "groupid": {
+                            "cast": "groupid",
+                            "as": "INT"
+                    },
+                    "location": {
+                            "cast": "location",
+                            "as": "VARCHAR"
+                    }
+            }
+    }]
+}
