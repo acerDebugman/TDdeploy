@@ -9,6 +9,7 @@ pub async fn test_tmq() -> anyhow::Result<()> {
         let _ = subscribe("taos://localhost:6030", "test").await;
     }); 
 
+    tokio::time::sleep(Duration::from_secs(5)).await;
     producer("taos://localhost:6030", 10000000).await?;
     Ok(())
 }
