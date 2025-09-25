@@ -1,7 +1,8 @@
-use jira_case::gen_data::{td_blob_data_big, td_blob_data_small};
+use jira_case::{gen_data::{td_blob_data_big, td_blob_data_small}, ts5820::tmq::test_tmq};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    td_blob_data_big().await?;
+    // td_blob_data_big().await?;
+    test_tmq().await?;
     Ok(())
 }
