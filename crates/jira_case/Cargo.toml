@@ -76,16 +76,15 @@ tracing-subscriber = { workspace = true }
 tracing-opentelemetry = { workspace = true }
 
 
-#taosx-core = { path = "/home/algo/rust_space/taosx/taosx-core" }
-#taosx-ipc = { path = "/home/algo/rust_space/taosx/taosx-ipc" }
-taosx-core.workspace = true
-taosx-ipc.workspace = true
+taosx-core = { path = "/home/algo/rust_space/taosx/taosx-core" }
+taosx-ipc = { path = "/home/algo/rust_space/taosx/taosx-ipc" }
 
 # taos.workspace = true
 
 [dependencies.taos]
 # path = "../taos-connector-rust/taos"
-rev = "0e47990"
+# rev = "0e47990"
+rev = "56f7766"
 git = "https://github.com/taosdata/taos-connector-rust.git"
 default-features = false
 features = ["ws", "optin", "deadpool"]
