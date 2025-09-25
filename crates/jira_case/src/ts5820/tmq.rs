@@ -43,7 +43,9 @@ pub async fn producer(dsn: &str, limit: usize) -> anyhow::Result<()> {
 
         // let item = format!("\\x{}", "255044462D312E330D0A".repeat(10));
         // 3M = 20 * 1000 * 150
-        let item = format!("\\x{}", "255044462D312E330D0A".repeat(1000 * 150));
+        // let item = format!("\\x{}", "255044462D312E330D0A".repeat(1000 * 150));
+        // 500k = 20 * 1000 * 25
+        let item = format!("\\x{}", "255044462D312E330D0A".repeat(1000 * 25));
         println!("item len: {}", item.len());
         let inserted = taos.exec_many([
             &format!("INSERT INTO `t1` using `meters` (`groupid`,`location`) tags(1,\"BJ\") (`ts`,`id`,`voltage`,`v_blob`) values(now,1,11,'{}')", item),
