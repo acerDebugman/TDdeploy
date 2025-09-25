@@ -6,7 +6,7 @@ use taos::*;
 
 pub async fn test_tmq() -> anyhow::Result<()> {
     let _ = tokio::spawn(async move {
-        let _ = subscribe("taos://localhost:6030/?group.id=test").await;
+        let _ = subscribe("taos://localhost:6030", "test").await;
     }); 
 
     producer("taos://localhost:6030", 10000000).await?;
