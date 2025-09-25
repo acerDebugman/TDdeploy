@@ -102,3 +102,10 @@ taosx run -f "local:/root/zgc/dev/TS-5820_blob/backup" -t "taos+ws://127.0.0.1:6
 tmq2td 的数据不会被 tmq2local 的方式导出。只有 insert 语句会被 tmq2local 导出。
 ```
 ```
+
+### td2csv
+```
+taosx run -f "taos:///testdb?query=select tbname, * from meters"   -t "csv:./meters.csv"
+```
+
+### td2parquet
