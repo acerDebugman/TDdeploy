@@ -27,7 +27,7 @@ pub async fn producer(dsn: &str, limit: usize) -> anyhow::Result<()> {
     let db = "ts5820";
     taos.exec_many([
         format!("USE `{db}`"),
-        "create stable meters(ts timestamp, id int, voltage int, v_blob blob) tags(groupid int, location varchar(24));".to_string(),
+        // "create stable meters(ts timestamp, id int, voltage int, v_blob blob) tags(groupid int, location varchar(24));".to_string(),
     ])
     .await?;
 
