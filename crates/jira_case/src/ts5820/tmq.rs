@@ -1,5 +1,7 @@
 use std::time::Duration;
-
+use taosx_core::taoz::Header;
+use taosx_core::taoz::ZCodec;
+use std::sync::Arc;
 use chrono::{DateTime, Local};
 use taos::*;
 
@@ -13,7 +15,7 @@ pub async fn test_tmq() -> anyhow::Result<()> {
     // });
 
     let _ = tokio::spawn(async move {
-        tmq2local(db, addr).await?;
+        let _ = tmq2local(db, addr).await;
     });
 
     tokio::time::sleep(Duration::from_secs(5)).await;
