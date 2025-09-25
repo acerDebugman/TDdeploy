@@ -1,11 +1,10 @@
 use std::time::Duration;
-use taos::*;
 use taosx_core::taoz::Header;
 use taosx_core::taoz::ZCodec;
 use std::sync::Arc;
 use taos::tokio::io::AsyncWriteExt;
 use chrono::{DateTime, Local};
-
+use taos::*;
 
 pub async fn test_tmq() -> anyhow::Result<()> {
     let db = "ts5820";
@@ -32,7 +31,7 @@ pub async fn producer(dsn: &str, db: &str, limit: usize) -> anyhow::Result<()> {
     // let dsn = "taos://192.168.2.131:6030";
     //let dsn = "taos://127.0.0.1:6030";
 
-    let pool = TaosBuilder::from_dsn(dsn)?.pool()?;
+    let pool = taos::TaosBuilder::from_dsn(dsn)?.pool()?;
 
     let taos = pool.get().await?;
 
@@ -81,7 +80,7 @@ struct Record {
     phase: Option<f32>,
 }
 
-async fn prepare(taos: Taos) -> anyhow::Result<()> {
+async fn prepare(taos: &taos::Taos) -> anyhow::Result<()> {
     let inserted = taos.exec_many([
         // create child table
         "CREATE TABLE `d0` USING `meters` TAGS(0, 'Los Angles')",
@@ -103,7 +102,7 @@ pub async fn subscribe(dsn: &str, db: &str, group_id: &str) -> anyhow::Result<()
     // std::env::set_var("RUST_LOG", "debug");
     pretty_env_logger::init();
     // let dsn = "taos://localhost:6030";
-    let builder = TaosBuilder::from_dsn(dsn)?;
+    let builder = taos::TaosBuilder::from_dsn(dsn)?;
 
     let taos = builder.build().await?;
     // let db = "ts5820";
