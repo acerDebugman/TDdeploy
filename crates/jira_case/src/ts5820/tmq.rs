@@ -5,12 +5,14 @@ use taos::*;
 
 
 pub async fn test_tmq() -> anyhow::Result<()> {
+    let addr = "localhost:6030";
+    // let addr = "172.18.0.2:6030";
     let _ = tokio::spawn(async move {
-        let _ = subscribe("taos://localhost:6030", "test").await;
-    }); 
+        let _ = subscribe(&format!("taos://{}", addr), "test").await;
+    });
 
     tokio::time::sleep(Duration::from_secs(5)).await;
-    producer("taos://localhost:6030", 10000000).await?;
+    producer(&format!("taos://{}", addr), 10000000).await?;
     Ok(())
 }
 
@@ -48,7 +50,7 @@ pub async fn producer(dsn: &str, limit: usize) -> anyhow::Result<()> {
         tokio::time::sleep(Duration::from_secs(1)).await;
     }
 
-    Ok(()) 
+    Ok(())
 }
 
 // Query options 2, use deserialization with serde.
@@ -151,4 +153,3 @@ pub async fn subscribe(dsn: &str, group_id: &str) -> anyhow::Result<()> {
 
     Ok(())
 }
-
