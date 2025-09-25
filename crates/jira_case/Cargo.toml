@@ -76,8 +76,11 @@ tracing-subscriber = { workspace = true }
 tracing-opentelemetry = { workspace = true }
 
 
-taosx-core = { path = "/home/algo/rust_space/taosx/taosx-core" }
-taosx-ipc = { path = "/home/algo/rust_space/taosx/taosx-ipc" }
+#taosx-core = { path = "/home/algo/rust_space/taosx/taosx-core" }
+#taosx-ipc = { path = "/home/algo/rust_space/taosx/taosx-ipc" }
+taosx-core.workspace = true
+taosx-ipc.workspace = true
+
 
 # taos.workspace = true
 
