@@ -3,8 +3,8 @@ use taos::*;
 
 
 pub async fn td_blob_data_small() -> anyhow::Result<()> {
-    // let dsn = "taos://192.168.2.131:6030";
-    let dsn = "taos://127.0.0.1:6030";
+    let dsn = "taos://192.168.2.131:6030";
+    //let dsn = "taos://127.0.0.1:6030";
 
     let pool = TaosBuilder::from_dsn(dsn)?.pool()?;
 
@@ -120,10 +120,17 @@ pub async fn td_blob_data_big() -> anyhow::Result<()> {
     .await?;
 
     // 6M = 20 * 1000 * 300
-    //let item = format!("0x{}", "255044462D312E330D0A".repeat(1000*300));
-    // 1M = 20 * 1000 * 150
-    //let item = format!("0x{}", "255044462D312E330D0A".repeat(1000*50));
-    let item = format!("0x{}", "255044462D312E330D0A".repeat(1000*20));
+    //let item = format!("\\x{}", "255044462D312E330D0A".repeat(1000*300));
+    // 2M = 20 * 1000 * 100
+    //let item = format!("\\x{}", "255044462D312E330D0A".repeat(1000*100));
+    let item = format!("{}", "255044462D312E330D0A".repeat(1000*100));
+
+    // 1M = 20 * 1000 * 50
+    //let item = format!("\\x{}", "255044462D312E330D0A".repeat(1000*50));
+    //let item = format!("{}", "255044462D312E330D0A".repeat(1000*50));
+   
+    //let item = format!("\\x{}", "255044462D312E330D0A".repeat(1000*20));
+    //let item = format!("{}", "255044462D312E330D0A".repeat(1000*20));
     println!("item len: {}", item.len());
     let inserted = taos.exec_many([
         // create super table
@@ -131,7 +138,8 @@ pub async fn td_blob_data_big() -> anyhow::Result<()> {
         "create stable meters(ts timestamp, id int, voltage int, v_blob blob) tags(groupid int, location varchar(24));",
         // create child table
         // "CREATE TABLE `d0` USING `meters` TAGS(0, 'Los Angles')",
-        &format!("INSERT INTO `t1` using `meters` (`groupid`,`location`) tags(1,\"BJ\") (`ts`,`id`,`voltage`,`v_blob`) values(1751538339000,1,11,{})", item),
+        //&format!("INSERT INTO `t1` using `meters` (`groupid`,`location`) tags(1,\"BJ\") (`ts`,`id`,`voltage`,`v_blob`) values(1751538339000,1,11,'{}')", item),
+        &format!("INSERT INTO `t1` using `meters` (`groupid`,`location`) tags(1,\"BJ\") (`ts`,`id`,`voltage`,`v_blob`) values(now,1,11,'{}')", item),
         // insert into child table
         // insert with NULL values
         // insert many records in a single sql
