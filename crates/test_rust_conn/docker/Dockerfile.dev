@@ -1,0 +1,20 @@
+FROM ubuntu:22.04
+#FROM linuxdeepin/deepin:23
+LABEL maintainer "Joe Zhang <460873250@qq.com>"
+
+ENV TINI_VERSION v0.19.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+RUN chmod +x /tini
+
+RUN apt update \
+  && apt install -y wget curl jq sqlite3 openjdk-18-jre ca-certificates \
+  && rm -rf /var/cache/apt/*
+
+
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+
+ENTRYPOINT ["/tini", "--"]
+
+
+#CMD ["/usr/bin/taosx", "serve", "-v"]

@@ -1,0 +1,20 @@
+[package]
+name = "test_rust_conn"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+shadow-rs = { version = "1.1", default-features = false }
+# taos = "*"
+# taos = { version = "*", default-features = false, features = ["ws"] }
+# taos = { version = "*", default-features = false, features = ["native"] }
+taos = { path = "/home/algo/rust_workspace/taos-connector-rust/taos", default-features = false, features = ["ws"], package="taos" }
+# taos = { path = "/home/algo/rust_workspace/taos-connector-rust/taos", default-features = true, package="taos" }
+tokio = { version = "1.45", features = ["full"] }
+tokio-util = "0.7.15"
+anyhow = { version = "1.0" }
+chrono = { version = "0.4.41" }
+async-trait = "0.1.88"
+paho-mqtt = "0.13.3"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
