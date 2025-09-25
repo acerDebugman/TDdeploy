@@ -5,20 +5,27 @@ use taos::*;
 
 
 pub async fn test_tmq() -> anyhow::Result<()> {
+    let db = "ts5820";
     let addr = "localhost:6030";
     // let addr = "172.18.0.2:6030";
+    // let _ = tokio::spawn(async move {
+    //     let _ = subscribe(&format!("taos://{}", addr), db, "test").await;
+    // });
+
     let _ = tokio::spawn(async move {
-        let _ = subscribe(&format!("taos://{}", addr), "test").await;
+        tmq2local(db, addr).await?;
     });
 
     tokio::time::sleep(Duration::from_secs(5)).await;
-    producer(&format!("taos://{}", addr), 10000000).await?;
+    producer(&format!("taos://{}", addr), db, 10000000).await?;
+
+
     Ok(())
 }
 
 
 // tmq producer, 持续向 td 里写数据即可
-pub async fn producer(dsn: &str, limit: usize) -> anyhow::Result<()> {
+pub async fn producer(dsn: &str, db: &str, limit: usize) -> anyhow::Result<()> {
     // let dsn = "taos://192.168.2.131:6030";
     //let dsn = "taos://127.0.0.1:6030";
 
@@ -26,7 +33,7 @@ pub async fn producer(dsn: &str, limit: usize) -> anyhow::Result<()> {
 
     let taos = pool.get().await?;
 
-    let db = "ts5820";
+    // let db = "ts5820";
     taos.exec_many([
         format!("USE `{db}`"),
         // "create stable meters(ts timestamp, id int, voltage int, v_blob blob) tags(groupid int, location varchar(24));".to_string(),
@@ -89,14 +96,14 @@ async fn prepare(taos: Taos) -> anyhow::Result<()> {
 }
 
 
-pub async fn subscribe(dsn: &str, group_id: &str) -> anyhow::Result<()> {
+pub async fn subscribe(dsn: &str, db: &str, group_id: &str) -> anyhow::Result<()> {
     // std::env::set_var("RUST_LOG", "debug");
     pretty_env_logger::init();
     // let dsn = "taos://localhost:6030";
     let builder = TaosBuilder::from_dsn(dsn)?;
 
     let taos = builder.build().await?;
-    let db = "ts5820";
+    // let db = "ts5820";
 
     // prepare database
     taos.exec_many([
@@ -155,6 +162,82 @@ pub async fn subscribe(dsn: &str, group_id: &str) -> anyhow::Result<()> {
     consumer.unsubscribe().await;
 
     // task.await??;
+
+    Ok(())
+}
+
+async fn tmq2local(db: &str, addr: &str) -> anyhow::Result<()> {
+    let taos = TaosBuilder::from_dsn(format!("taos://{addr}:6030"))?.build().await?;
+    pretty_env_logger::formatted_builder().filter_level(log::LevelFilter::Debug);
+    let topic = format!("tmq2_{db}");
+    taos.exec_many([
+        format!("drop topic if exists `{topic}`"),
+        format!("create topic `{topic}` with meta as database {db}"),
+        format!("use `{db}`"),
+    ])
+    .await?;
+
+    // let writer = std::fs::File::create("abc1.test.z")?;
+    let writer = tokio::fs::File::create("abc1.test.z").await?;
+
+    let writer = async_compression::tokio::write::ZstdEncoder::new(writer);
+    let mut writer = ZCodec::new(writer);
+    // let writer =
+    // let db = "abc1";
+    writer
+        .write_head_async(&Header::new("1.6.0", "3.3.0.0", db.to_string()))
+        .await?;
+
+    let mut tmq = TmqBuilder::from_dsn(format!("taos:///?group.id={}", "tmq_g2"))?.build().await?;
+    tmq.subscribe([&topic]).await?;
+    let writer = Arc::new(tokio::sync::Mutex::new(writer));
+
+    let rows = tmq
+        .stream_with_timeout(Timeout::from_millis(500))
+        .map_err(anyhow::Error::from)
+        .map_ok(|(offset, message)| async {
+            let mut rows = 0;
+            let mut writer = writer.lock().await;
+            match message {
+                MessageSet::Meta(meta) => {
+                    // dbg!(meta.as_json_meta().await?);
+                    writer
+                        .write_meta_async(&meta.as_raw_meta().await?)
+                        .await
+                        .unwrap();
+                }
+                MessageSet::Data(data) => {
+                    writer.start_data_async().await.unwrap();
+                    while let Some(block) = data.fetch_raw_block().await.unwrap() {
+                        // dbg!(&block);
+                        let _len = writer.write_data_async(&block).await.unwrap();
+                        rows += block.nrows();
+                        // dbg!(len);
+                        // tracing::info!("");
+                        tracing::info!(
+                            "table {} rows: {}",
+                            block.table_name().unwrap(),
+                            block.nrows()
+                        );
+                    }
+                    writer.finish_data_async().await.unwrap();
+                }
+                _ => unreachable!(),
+            }
+            writer.flush().await.unwrap();
+            tmq.commit(offset).await?;
+            anyhow::Result::<usize>::Ok(rows)
+        })
+        .try_fold(0, |sum, n| async move { Ok(n.await? + sum) })
+        .await?;
+    let mut writer = writer.lock().await;
+    writer.flush().await?;
+    writer.shutdown().await?;
+    // let mut bytes = Vec::with_capacity(10000);
+    // bytes.resize(10000, 0xffu8);
+    // writer.write_all(&bytes).await?;
+    // writer.deref_mut().shutdown().await?;
+    println!("backup {} rows in database {}", rows, db);
 
     Ok(())
 }
