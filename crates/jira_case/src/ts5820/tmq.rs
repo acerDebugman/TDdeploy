@@ -358,7 +358,7 @@ pub async fn test_poll_with_sleep() -> anyhow::Result<()> {
 
     for i in 0..num {
         sqls.push(format!(
-            "insert into t0 values ({}, {}, {}, {}, {})",
+            "insert into t0 values ({}, {}, {}, {}, '{}')",
             ts + i as i64,
             i,
             i as f32 * 1.1,
