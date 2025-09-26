@@ -207,55 +207,88 @@ async fn tmq2local(db: &str, addr: &str) -> anyhow::Result<()> {
     writer
         .write_head_async(&Header::new("1.6.0", "3.3.0.0", db.to_string()))
         .await?;
-    let mut tmq = TmqBuilder::from_dsn(format!("taos:///?group.id={}", "tmq_g2"))?.build().await?;
-    tmq.subscribe([&topic]).await?;
+    let mut consumer = TmqBuilder::from_dsn(format!("taos:///?group.id={}", "tmq_g2"))?.build().await?;
+    consumer.subscribe([&topic]).await?;
     let writer = Arc::new(tokio::sync::Mutex::new(writer));
+    let mut rows = 0;
+    {
+        let mut stream = consumer.stream();
 
-    let rows = tmq
-        .stream_with_timeout(Timeout::from_millis(500))
-        .map_err(anyhow::Error::from)
-        .map_ok(|(offset, message)| async {
-            let mut rows = 0;
-            let mut writer = writer.lock().await;
-            match message {
-                MessageSet::Meta(meta) => {
-                    dbg!("xxxzgc meta:", meta.as_json_meta().await?);
-                    writer
-                        .write_meta_async(&meta.as_raw_meta().await?)
-                        .await
-                        .unwrap();
+        while let Some((offset, message)) = stream.try_next().await? {
+            // get information from offset
+
+            // the topic
+            let topic = offset.topic();
+            // the vgroup id, like partition id in kafka.
+            let vgroup_id = offset.vgroup_id();
+            println!("* in vgroup id {vgroup_id} of topic {topic}\n");
+
+            if let Some(data) = message.into_data() {
+                while let Some(block) = data.fetch_raw_block().await? {
+                    // one block for one table, get table name if needed
+                    let name = block.table_name();
+                    rows += block.nrows();
+                    let records: Vec<Record> = block.deserialize().try_collect()?;
+                    println!(
+                        "** table: {}, got {} records: {:#?}\n",
+                        name.unwrap(),
+                        records.len(),
+                        records
+                    );
                 }
-                MessageSet::Data(data) => {
-                    writer.start_data_async().await.unwrap();
-                    while let Some(block) = data.fetch_raw_block().await.unwrap() {
-                        // dbg!(&block);
-                        let _len = writer.write_data_async(&block).await.unwrap();
-                        rows += block.nrows();
-                        println!(
-                            "table {} rows: {}",
-                            block.table_name().unwrap(),
-                            block.nrows());
-                        // dbg!(len);
-                        // tracing::info!("");
-                        // tracing::info!(
-                        //     "table {} rows: {}",
-                        //     block.table_name().unwrap(),
-                        //     block.nrows()
-                        // );
-                    }
-                    writer.finish_data_async().await.unwrap();
-                }
-                _ => unreachable!(),
             }
-            writer.flush().await.unwrap();
-            tmq.commit(offset).await?;
-            anyhow::Result::<usize>::Ok(rows)
-        })
-        .try_fold(0, |sum, n| async move { Ok(n.await? + sum) })
-        .await?;
-    let mut writer = writer.lock().await;
-    writer.flush().await?;
-    writer.shutdown().await?;
+            consumer.commit(offset).await?;
+        }
+    }
+
+    consumer.unsubscribe().await;
+
+
+    // let rows = tmq
+    //     .stream_with_timeout(Timeout::from_millis(500))
+    //     .map_err(anyhow::Error::from)
+    //     .map_ok(|(offset, message)| async {
+    //         let mut rows = 0;
+    //         let mut writer = writer.lock().await;
+    //         match message {
+    //             MessageSet::Meta(meta) => {
+    //                 dbg!("xxxzgc meta:", meta.as_json_meta().await?);
+    //                 writer
+    //                     .write_meta_async(&meta.as_raw_meta().await?)
+    //                     .await
+    //                     .unwrap();
+    //             }
+    //             MessageSet::Data(data) => {
+    //                 writer.start_data_async().await.unwrap();
+    //                 while let Some(block) = data.fetch_raw_block().await.unwrap() {
+    //                     // dbg!(&block);
+    //                     let _len = writer.write_data_async(&block).await.unwrap();
+    //                     rows += block.nrows();
+    //                     println!(
+    //                         "table {} rows: {}",
+    //                         block.table_name().unwrap(),
+    //                         block.nrows());
+    //                     // dbg!(len);
+    //                     // tracing::info!("");
+    //                     // tracing::info!(
+    //                     //     "table {} rows: {}",
+    //                     //     block.table_name().unwrap(),
+    //                     //     block.nrows()
+    //                     // );
+    //                 }
+    //                 writer.finish_data_async().await.unwrap();
+    //             }
+    //             _ => unreachable!(),
+    //         }
+    //         writer.flush().await.unwrap();
+    //         tmq.commit(offset).await?;
+    //         anyhow::Result::<usize>::Ok(rows)
+    //     })
+    //     .try_fold(0, |sum, n| async move { Ok(n.await? + sum) })
+    //     .await?;
+    // let mut writer = writer.lock().await;
+    // writer.flush().await?;
+    // writer.shutdown().await?;
     // let mut bytes = Vec::with_capacity(10000);
     // bytes.resize(10000, 0xffu8);
     // writer.write_all(&bytes).await?;
