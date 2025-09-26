@@ -36,7 +36,8 @@ pub async fn send2kafka(kafka_addr: &str, kafka_topic: &str, duration: std::time
     while start_time.elapsed() < duration {
         // 构造消息数据
         // 3M
-        let item = format!("{}", "255044462D312E330D0A".repeat(1000*150));
+        // let item = format!("{}", "255044462D312E330D0A".repeat(1000*150));
+        let item = format!("{}", "255044462D312E330D0A".repeat(1000*50));
         // 600K
         // let item = format!("{}", "255044462D312E330D0A".repeat(1000*30));
         // let item = format!("{}", "255044462D312E330D0A");
