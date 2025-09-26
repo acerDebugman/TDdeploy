@@ -86,8 +86,8 @@ tracing-subscriber = { version = "0.3" }
 tracing-opentelemetry = { version = "0.31" }
 
 
-#taosx-core = { path = "../taosx/taosx-core" }
-#taosx-ipc = { path = "../taosx/taosx-ipc" }
+taosx-core = { path = "../taosx/taosx-core" }
+taosx-ipc = { path = "../taosx/taosx-ipc" }
 tmp-to-local = { path = "../taosx/crates/tmq-to-local", package = "tmq-to-local" }
 
 
