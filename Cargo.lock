@@ -3109,6 +3109,7 @@ dependencies = [
  "tempfile",
  "tiberius",
  "tinytemplate",
+ "tmq-to-local",
  "tokio",
  "tokio-stream",
  "tokio-util",
@@ -6541,6 +6542,26 @@ name = "tinyvec_macros"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
+
+[[package]]
+name = "tmq-to-local"
+version = "1.11.0"
+dependencies = [
+ "anyhow",
+ "async-backtrace",
+ "async-compression",
+ "chrono",
+ "dashmap 6.1.0",
+ "futures-util",
+ "scc",
+ "semver",
+ "serde",
+ "taos 0.12.4 (git+https://github.com/taosdata/taos-connector-rust.git?rev=0e47990)",
+ "taosx-core",
+ "tokio",
+ "tokio-util",
+ "tracing",
+]
 
 [[package]]
 name = "tokio"

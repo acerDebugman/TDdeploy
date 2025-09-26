@@ -5,8 +5,19 @@ use std::sync::Arc;
 use taos::tokio::io::AsyncWriteExt;
 use chrono::{DateTime, Local};
 use taos::*;
+use tmp_to_local::tmq_to_local;
+use tokio_util::sync::CancellationToken;
 
 use crate::taosz::{Header, ZCodec};
+
+pub async fn test_taos_core_tmq2local() -> anyhow::Result<()> {
+
+    // let dsn = "taos://192.168.2.131:6030";
+    let cancel = CancellationToken::new();
+    // tmq_to_local(Some("999"), "", "", cancel).await?;
+
+    Ok(())
+}
 
 pub async fn test_tmq() -> anyhow::Result<()> {
     let db = "ts5820";
@@ -29,7 +40,6 @@ pub async fn test_tmq() -> anyhow::Result<()> {
 
     tokio::time::sleep(Duration::from_secs(5)).await;
     producer(&format!("taos://{}", addr), db, 10000000).await?;
-
 
     Ok(())
 }

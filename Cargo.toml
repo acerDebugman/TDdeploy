@@ -90,6 +90,7 @@ tracing-opentelemetry = { version = "0.31" }
 #taosx-ipc = { path = "/home/algo/rust_space/taosx/taosx-ipc" }
 taosx-core = { path = "../taosx/taosx-core" }
 taosx-ipc = { path = "../taosx/taosx-ipc" }
+tmp-to-local = { path = "../taosx/crates/tmq-to-local", package = "tmq-to-local" }
 
 
 [dependencies.taos]
