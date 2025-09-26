@@ -1,4 +1,4 @@
-use jira_case::{gen_data::{td_blob_data_big, td_blob_data_small}, ts5820::{kafka::kafka_main, subscribe, tmq::{test_poll_with_sleep, test_tmq}}};
+use jira_case::{gen_data::{td_blob_data_big, td_blob_data_small}, ts5820::{kafka::kafka_main, loop_data, subscribe, tmq::{test_poll_with_sleep, test_tmq}}};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -6,6 +6,7 @@ async fn main() -> anyhow::Result<()> {
     // test_tmq().await?;
     // kafka_main().await?;
     // subscribe::subscribe().await?;
-    test_poll_with_sleep().await?;
+    // test_poll_with_sleep().await?;
+    loop_data().await?;
     Ok(())
 }
