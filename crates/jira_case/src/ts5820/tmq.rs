@@ -1,10 +1,11 @@
-use std::time::Duration;
+use std::{time::Duration};
 // use taosx_core::taoz::Header;
 // use taosx_core::taoz::ZCodec;
 use std::sync::Arc;
 use taos::tokio::io::AsyncWriteExt;
 use chrono::{DateTime, Local};
 use taos::*;
+use tokio::sync::{mpsc, oneshot, watch};
 use tokio_util::sync::CancellationToken;
 
 use crate::taosz::{Header, ZCodec};
@@ -184,7 +185,7 @@ pub async fn subscribe(dsn: &str, db: &str, group_id: &str) -> anyhow::Result<()
 
     consumer.unsubscribe().await;
 
-    // task.await??;
+    println!("done");
 
     Ok(())
 }
@@ -273,6 +274,116 @@ async fn tmq2local(db: &str, addr: &str) -> anyhow::Result<()> {
     // writer.write_all(&bytes).await?;
     // writer.deref_mut().shutdown().await?;
     println!("backup {} rows in database {}", rows, db);
+
+    Ok(())
+}
+
+// #[tokio::test]
+pub async fn test_poll_with_sleep() -> anyhow::Result<()> {
+    use taos_query::prelude::*;
+
+    let taos = TaosBuilder::from_dsn("ws://localhost:6041")?
+        .build()
+        .await?;
+
+    taos.exec_many([
+        "drop topic if exists topic_1748512568",
+        "drop database if exists test_1748512568",
+        "create database test_1748512568 vgroups 10",
+        "create topic topic_1748512568 as database test_1748512568",
+        "use test_1748512568",
+        "create table t0 (ts timestamp, c1 int, c2 float, c3 float)",
+    ])
+    .await?;
+
+    let num = 3000;
+
+    let (msg_tx, mut msg_rx) =
+        mpsc::channel::<(MessageSet<Meta, Data>, oneshot::Sender<()>)>(100);
+
+    let (cancel_tx, mut cancel_rx) = watch::channel(false);
+
+    let cnt_handle: tokio::task::JoinHandle<anyhow::Result<()>> = tokio::spawn(async move {
+        let mut cnt = 0;
+        while let Some((mut msg, done_tx)) = msg_rx.recv().await {
+            if let Some(data) = msg.data() {
+                // while let Some(block) = data.fetch_block().await? {
+                while let Some(block) = data.fetch_raw_block().await? {
+                    cnt += block.nrows();
+                }
+            }
+            let _ = done_tx.send(());
+        }
+        assert_eq!(cnt, num);
+        Ok(())
+    });
+
+    let poll_handle: tokio::task::JoinHandle<anyhow::Result<()>> = tokio::spawn(async move {
+        let tmq =
+            TmqBuilder::from_dsn("ws://localhost:6041?group.id=10&auto.offset.reset=earliest")?;
+        let mut consumer = tmq.build().await?;
+        consumer.subscribe(["topic_1748512568"]).await?;
+
+        let timeout = Timeout::Duration(Duration::from_secs(1));
+
+        loop {
+            tokio::select! {
+                _ = cancel_rx.changed() => {
+                    break;
+                }
+                res = consumer.recv_timeout(timeout) => {
+                    if let Some((offset, message)) = res? {
+                        let (done_tx, done_rx) = oneshot::channel();
+                        msg_tx.send((message, done_tx)).await?;
+                        let _ = done_rx.await;
+                        consumer.commit(offset).await?;
+                    }
+                }
+            }
+        }
+
+        consumer.unsubscribe().await;
+
+        Ok(())
+    });
+
+    let mut sqls = Vec::with_capacity(100);
+
+    let ts = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_millis() as i64;
+
+    for i in 0..num {
+        sqls.push(format!(
+            "insert into t0 values ({}, {}, {}, {})",
+            ts + i as i64,
+            i,
+            i as f32 * 1.1,
+            i as f32 * 2.2
+        ));
+
+        if (i + 1) % 100 == 0 {
+            taos.exec_many(&sqls).await?;
+            sqls.clear();
+            tokio::time::sleep(Duration::from_secs(2)).await;
+        }
+    }
+
+    tokio::time::sleep(Duration::from_secs(20)).await;
+
+    let _ = cancel_tx.send(true);
+
+    poll_handle.await??;
+    cnt_handle.await??;
+
+    tokio::time::sleep(Duration::from_secs(3)).await;
+
+    taos.exec_many([
+        "drop topic topic_1748512568",
+        "drop database test_1748512568",
+    ])
+    .await?;
 
     Ok(())
 }
