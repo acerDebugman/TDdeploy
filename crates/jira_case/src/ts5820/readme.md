@@ -1,3 +1,12 @@
+# 转换逻辑
+任务运行中的数据类型转换分数据源是否有 blob 数据类型进行修改。有 blob 数据类型的数据源有 mysql 和 oracle，其他数据源比如 mssql 等有 varbinary 数据类型，要转为 td 的 blob 数据类型，需要在 transform 的 mapping 进行映射配置。如果是 kafka, mqtt 等数据源类型，转为 blob 类型需要以数组格式提供数据。
+特殊任务比如 tmq-to-td, legacy-to-td 会单独说明。
+即数据源有 4 中形式的数据提供：
+1. blob 数据类型，比如 mysql, oracle
+2. binary 类数据类型，比如 mssql 等，这种 代码里数据源读取时，默认使用 binary 类型。需要在 map 阶段配置转换为 blob
+3. kafka,mqtt 数据源 数据类型，数据传送可能以 json 为主， 要转 blob 字段 需要以数组格式提供数据，每个元素是一个 blob 类型。
+4. kafka,mqtt 数据源 数据类型，数据传送可能以 字符串 为主的，也可以字符串转。
+
 # 测试脚本
 
 //1. oracle 数据迁移到 tdengine
@@ -109,3 +118,107 @@ taosx run -f "taos:///testdb?query=select tbname, * from meters"   -t "csv:./met
 ```
 
 ### td2parquet
+
+
+### kafka2td
+
+
+parser.json:
+```
+{
+    "parser": {
+        "parse": {
+            "value": {
+                "json": "",
+                "depth": 1
+            }
+        },
+        "model": {
+            "name": "k${id}",
+            "using": "tkafka",
+            "tags": [
+                "groupid",
+                "location"
+            ],
+            "columns": [
+                "ts",
+                "id",
+                "v_blob"
+            ]
+        },
+        "mutate": [
+            {
+                "map": {
+                    "ts": {
+                        "cast": "ts",
+                        "as": "TIMESTAMP(ns)"
+                    },
+                    "id": {
+                        "cast": "id",
+                        "as": "BIGINT"
+                    },
+                    "v_blob": {
+                        "cast": "v_blob",
+                        "as": "BLOB"
+                    },
+                    "groupid": {
+                        "cast": "groupid",
+                        "as": "BIGINT"
+                    },
+                    "location": {
+                        "cast": "location",
+                        "as": "VARCHAR"
+                    }
+                }
+            }
+        ]
+    },
+    "input": [
+        {
+            "value": "{\"ts\":1758850017323,\"id\":1,\"v_blob\":[50,53,53,48,52,52,52,54,50,68,51,49,50,69,51,51,48,68,48,65],\"groupid\":1,\"location\":\"BeiJing\"}",
+            "key": "key-1"
+        },
+        {
+            "value": "{\"ts\":1758850018346,\"id\":0,\"v_blob\":[50,53,53,48,52,52,52,54,50,68,51,49,50,69,51,51,48,68,48,65],\"groupid\":0,\"location\":\"BeiJing\"}",
+            "key": "key-3"
+        },
+        {
+            "value": "{\"ts\":1758850019878,\"id\":0,\"v_blob\":[50,53,53,48,52,52,52,54,50,68,51,49,50,69,51,51,48,68,48,65],\"groupid\":0,\"location\":\"BeiJing\"}",
+            "key": "key-6"
+        },
+        {
+            "value": "{\"ts\":1758850020391,\"id\":1,\"v_blob\":[50,53,53,48,52,52,52,54,50,68,51,49,50,69,51,51,48,68,48,65],\"groupid\":1,\"location\":\"BeiJing\"}",
+            "key": "key-7"
+        },
+        {
+            "value": "{\"ts\":1758850021411,\"id\":0,\"v_blob\":[50,53,53,48,52,52,52,54,50,68,51,49,50,69,51,51,48,68,48,65],\"groupid\":0,\"location\":\"BeiJing\"}",
+            "key": "key-9"
+        },
+        {
+            "value": "{\"ts\":1758850017323,\"id\":1,\"v_blob\":[50,53,53,48,52,52,52,54,50,68,51,49,50,69,51,51,48,68,48,65],\"groupid\":1,\"location\":\"BeiJing\"}",
+            "key": "key-1"
+        },
+        {
+            "value": "{\"ts\":1758850018346,\"id\":0,\"v_blob\":[50,53,53,48,52,52,52,54,50,68,51,49,50,69,51,51,48,68,48,65],\"groupid\":0,\"location\":\"BeiJing\"}",
+            "key": "key-3"
+        },
+        {
+            "value": "{\"ts\":1758850019878,\"id\":0,\"v_blob\":[50,53,53,48,52,52,52,54,50,68,51,49,50,69,51,51,48,68,48,65],\"groupid\":0,\"location\":\"BeiJing\"}",
+            "key": "key-6"
+        },
+        {
+            "value": "{\"ts\":1758850020391,\"id\":1,\"v_blob\":[50,53,53,48,52,52,52,54,50,68,51,49,50,69,51,51,48,68,48,65],\"groupid\":1,\"location\":\"BeiJing\"}",
+            "key": "key-7"
+        },
+        {
+            "value": "{\"ts\":1758850021411,\"id\":0,\"v_blob\":[50,53,53,48,52,52,52,54,50,68,51,49,50,69,51,51,48,68,48,65],\"groupid\":0,\"location\":\"BeiJing\"}",
+            "key": "key-9"
+        }
+    ],
+    "format": {
+        "pageCount": 6,
+        "pageSize": 20,
+        "currentPage": 1
+    }
+}
+```
