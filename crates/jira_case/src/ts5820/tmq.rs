@@ -292,8 +292,8 @@ pub async fn test_poll_with_sleep() -> anyhow::Result<()> {
         "create database test_1748512568 vgroups 10",
         "create topic topic_1748512568 as database test_1748512568",
         "use test_1748512568",
-        // "create table t0 (ts timestamp, c1 int, c2 float, c3 float)",
-        "create table t0 (ts timestamp, c1 int, c2 float, c3 float, v_blob varchar(1024))",
+        "create table t0 (ts timestamp, c1 int, c2 float, c3 float)",
+        // "create table t0 (ts timestamp, c1 int, c2 float, c3 float, v_blob varchar(1024))",
     ])
     .await?;
 
@@ -358,13 +358,21 @@ pub async fn test_poll_with_sleep() -> anyhow::Result<()> {
         .as_millis() as i64;
 
     for i in 0..num {
+        // sqls.push(format!(
+        //     "insert into t0 values ({}, {}, {}, {}, '{}')",
+        //     ts + i as i64,
+        //     i,
+        //     i as f32 * 1.1,
+        //     i as f32 * 2.2,
+        //     format!("blob_{}", i)
+        // ));
+
         sqls.push(format!(
-            "insert into t0 values ({}, {}, {}, {}, '{}')",
+            "insert into t0 values ({}, {}, {}, {})",
             ts + i as i64,
             i,
             i as f32 * 1.1,
             i as f32 * 2.2,
-            format!("blob_{}", i)
         ));
 
         if (i + 1) % 100 == 0 {
