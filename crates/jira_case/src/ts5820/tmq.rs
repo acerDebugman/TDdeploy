@@ -39,12 +39,12 @@ pub async fn test_tmq() -> anyhow::Result<()> {
 pub async fn producer(dsn: &str, db: &str, limit: usize) -> anyhow::Result<()> {
     // let dsn = "taos://192.168.2.131:6030";
     //let dsn = "taos://127.0.0.1:6030";
+    // let db = "ts5820";
 
     let pool = taos::TaosBuilder::from_dsn(dsn)?.pool()?;
 
     let taos = pool.get().await?;
 
-    // let db = "ts5820";
     taos.exec_many([
         format!("USE `{db}`"),
         // "create stable meters(ts timestamp, id int, voltage int, v_blob blob) tags(groupid int, location varchar(24));".to_string(),
@@ -63,7 +63,8 @@ pub async fn producer(dsn: &str, db: &str, limit: usize) -> anyhow::Result<()> {
         // 3M = 20 * 1000 * 150
         // let item = format!("\\x{}", "255044462D312E330D0A".repeat(1000 * 150));
         // 500k = 20 * 1000 * 25
-        let item = format!("\\x{}", "255044462D312E330D0A".repeat(1000 * 25));
+        // let item = format!("\\x{}", "255044462D312E330D0A".repeat(1000 * 25));
+        let item = format!("\\x{}", "255044462D312E330D0A");
         println!("item len: {}", item.len());
         let inserted = taos.exec_many([
             &format!("INSERT INTO `t1` using `meters` (`groupid`,`location`) tags(1,\"BJ\") (`ts`,`id`,`voltage`,`v_blob`) values(now,1,11,'{}')", item),
@@ -183,6 +184,11 @@ async fn tmq2local(db: &str, addr: &str) -> anyhow::Result<()> {
     let topic = format!("tmq2_{db}");
     taos.exec_many([
         format!("drop topic if exists `{topic}`"),
+        format!("DROP DATABASE IF EXISTS `{db}`"),
+        format!("CREATE DATABASE `{db}`"),
+        format!("USE `{db}`"),
+        // "create stable meters(ts timestamp, id int, voltage int, v_blob blob) tags(groupid int, location varchar(24));".to_string(),
+        "create stable meters(ts timestamp, id int, voltage int, v_blob varchar(1024)) tags(groupid int, location varchar(24));".to_string(),
         format!("create topic `{topic}` with meta as database {db}"),
         format!("use `{db}`"),
     ])
