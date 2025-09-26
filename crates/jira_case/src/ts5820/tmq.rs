@@ -181,9 +181,12 @@ async fn tmq2local(db: &str, addr: &str) -> anyhow::Result<()> {
     ])
     .await?;
 
+    let file_name = format!("{db}.test.z");
     // let writer = std::fs::File::create("abc1.test.z")?;
-    let writer = tokio::fs::File::create("abc1.test.z").await?;
+    let writer = tokio::fs::File::create(&file_name).await?;
 
+    println!("db: {}, file_name: {}", db, file_name);
+    
     let writer = async_compression::tokio::write::ZstdEncoder::new(writer);
     let mut writer = ZCodec::new(writer);
     // let writer =
@@ -191,7 +194,6 @@ async fn tmq2local(db: &str, addr: &str) -> anyhow::Result<()> {
     writer
         .write_head_async(&Header::new("1.6.0", "3.3.0.0", db.to_string()))
         .await?;
-
     let mut tmq = TmqBuilder::from_dsn(format!("taos:///?group.id={}", "tmq_g2"))?.build().await?;
     tmq.subscribe([&topic]).await?;
     let writer = Arc::new(tokio::sync::Mutex::new(writer));
@@ -204,7 +206,7 @@ async fn tmq2local(db: &str, addr: &str) -> anyhow::Result<()> {
             let mut writer = writer.lock().await;
             match message {
                 MessageSet::Meta(meta) => {
-                    // dbg!(meta.as_json_meta().await?);
+                    dbg!("xxxzgc meta:", meta.as_json_meta().await?);
                     writer
                         .write_meta_async(&meta.as_raw_meta().await?)
                         .await
@@ -216,13 +218,17 @@ async fn tmq2local(db: &str, addr: &str) -> anyhow::Result<()> {
                         // dbg!(&block);
                         let _len = writer.write_data_async(&block).await.unwrap();
                         rows += block.nrows();
-                        // dbg!(len);
-                        // tracing::info!("");
-                        tracing::info!(
+                        println!(
                             "table {} rows: {}",
                             block.table_name().unwrap(),
-                            block.nrows()
-                        );
+                            block.nrows());
+                        // dbg!(len);
+                        // tracing::info!("");
+                        // tracing::info!(
+                        //     "table {} rows: {}",
+                        //     block.table_name().unwrap(),
+                        //     block.nrows()
+                        // );
                     }
                     writer.finish_data_async().await.unwrap();
                 }
