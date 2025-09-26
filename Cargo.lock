@@ -7,7 +7,6 @@ name = "TDdeploy"
 version = "0.1.0"
 dependencies = [
  "assert_cmd",
- "taos 0.12.4 (git+https://github.com/taosdata/taos-connector-rust.git?rev=0e479909c050f12f592186cc4111086bf652c01c)",
 ]
 
 [[package]]

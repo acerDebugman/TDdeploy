@@ -84,16 +84,15 @@ taosx-ipc.workspace = true
 tmp-to-local.workspace = true
 
 
-# taos.workspace = true
+taos.workspace = true
 
-[dependencies.taos]
+#[dependencies.taos]
 # path = "../taos-connector-rust/taos"
 # rev = "0e47990"
-rev = "0e479909c050f12f592186cc4111086bf652c01c"
-#rev = "b9a6a6e176883556d4c3cfde36d3e306a065bf73"
-git = "https://github.com/taosdata/taos-connector-rust.git"
-default-features = false
-features = ["ws", "optin", "deadpool"]
+#rev = "0e479909c050f12f592186cc4111086bf652c01c"
+#git = "https://github.com/taosdata/taos-connector-rust.git"
+#default-features = false
+#features = ["ws", "optin", "deadpool"]
 
 [dev-dependencies]
 #assert_cmd.workspace = true

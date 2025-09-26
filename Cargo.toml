@@ -90,10 +90,10 @@ tracing-opentelemetry = { version = "0.31" }
 #taosx-ipc = { path = "/home/algo/rust_space/taosx/taosx-ipc" }
 taosx-core = { path = "../taosx/taosx-core" }
 taosx-ipc = { path = "../taosx/taosx-ipc" }
-tmp-to-local = { path = "../taosx/crates/tmq-to-local", package = "tmq-to-local" }
+tmp-to-local = { path = "/home/algo/rust_space/taosx/crates/tmq-to-local", package = "tmq-to-local" }
 
 
-[dependencies.taos]
+[workspace.dependencies.taos]
 # path = "../taos-connector-rust/taos"
 rev = "0e479909c050f12f592186cc4111086bf652c01c"
 git = "https://github.com/taosdata/taos-connector-rust.git"
