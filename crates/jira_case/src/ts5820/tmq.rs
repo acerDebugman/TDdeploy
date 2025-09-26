@@ -178,7 +178,7 @@ pub async fn subscribe(dsn: &str, db: &str, group_id: &str) -> anyhow::Result<()
 }
 
 async fn tmq2local(db: &str, addr: &str) -> anyhow::Result<()> {
-    let taos = TaosBuilder::from_dsn(format!("taos://{addr}:6030"))?.build().await?;
+    let taos = TaosBuilder::from_dsn(format!("taos://{addr}"))?.build().await?;
     // pretty_env_logger::formatted_builder().filter_level(log::LevelFilter::Debug);
     let topic = format!("tmq2_{db}");
     taos.exec_many([
