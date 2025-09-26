@@ -78,21 +78,13 @@ tracing-opentelemetry = { workspace = true }
 
 #taosx-core = { path = "/home/algo/rust_space/taosx/taosx-core" }
 #taosx-ipc = { path = "/home/algo/rust_space/taosx/taosx-ipc" }
-taosx-core.workspace = true
-taosx-ipc.workspace = true
+#taosx-core.workspace = true
+#taosx-ipc.workspace = true
 #tmp-to-local = { path = "/home/algo/rust_space/taosx/crates/tmq-to-local", package = "tmq-to-local" }
 tmp-to-local.workspace = true
 
 
 taos.workspace = true
-
-#[dependencies.taos]
-# path = "../taos-connector-rust/taos"
-# rev = "0e47990"
-#rev = "0e479909c050f12f592186cc4111086bf652c01c"
-#git = "https://github.com/taosdata/taos-connector-rust.git"
-#default-features = false
-#features = ["ws", "optin", "deadpool"]
 
 [dev-dependencies]
 #assert_cmd.workspace = true

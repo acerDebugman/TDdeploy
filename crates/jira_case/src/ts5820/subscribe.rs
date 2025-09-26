@@ -58,7 +58,7 @@ pub async fn subscribe() -> anyhow::Result<()> {
     tokio::time::sleep(Duration::from_secs(5)).await;
 
     // subscribe
-    let tmq = TmqBuilder::from_dsn("taos://root:taosdata@localhost:6030/?group.id=test")?;
+    let tmq = TmqBuilder::from_dsn("taos://root:taosdata@localhost:6030/?group.id=test&auto.offset.reset=earliest")?;
 
     let mut consumer = tmq.build().await?;
     consumer.subscribe(["tmq_meters"]).await?;

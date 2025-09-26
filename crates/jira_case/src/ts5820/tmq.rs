@@ -5,7 +5,6 @@ use std::sync::Arc;
 use taos::tokio::io::AsyncWriteExt;
 use chrono::{DateTime, Local};
 use taos::*;
-use tmp_to_local::tmq_to_local;
 use tokio_util::sync::CancellationToken;
 
 use crate::taosz::{Header, ZCodec};

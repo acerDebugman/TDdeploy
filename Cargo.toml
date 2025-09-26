@@ -86,10 +86,8 @@ tracing-subscriber = { version = "0.3" }
 tracing-opentelemetry = { version = "0.31" }
 
 
-#taosx-core = { path = "/home/algo/rust_space/taosx/taosx-core" }
-#taosx-ipc = { path = "/home/algo/rust_space/taosx/taosx-ipc" }
-taosx-core = { path = "../taosx/taosx-core" }
-taosx-ipc = { path = "../taosx/taosx-ipc" }
+#taosx-core = { path = "../taosx/taosx-core" }
+#taosx-ipc = { path = "../taosx/taosx-ipc" }
 tmp-to-local = { path = "../taosx/crates/tmq-to-local", package = "tmq-to-local" }
 
 
@@ -99,6 +97,7 @@ rev = "0e479909c050f12f592186cc4111086bf652c01c"
 git = "https://github.com/taosdata/taos-connector-rust.git"
 default-features = false
 features = ["ws", "optin", "deadpool"]
+
 
 [dev-dependencies]
 assert_cmd = "2.0.17"
