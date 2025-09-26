@@ -40,8 +40,8 @@ pub async fn send2kafka(kafka_addr: &str, kafka_topic: &str, duration: std::time
         // let item = format!("{}", "255044462D312E330D0A".repeat(1000*150));
         // let item = format!("{}", "255044462D312E330D0A".repeat(1000*50));
         // 20K
-        let item = format!("{}", "255044462D312E330D0A".repeat(1000));
-        // let item = format!("{}", "255044462D312E330D0A");
+        // let item = format!("{}", "255044462D312E330D0A".repeat(1000));
+        let item = format!("{}", "255044462D312E330D0A");
         let message = json!({
             "ts": Utc::now().timestamp_millis(),
             "id": i % 3,
