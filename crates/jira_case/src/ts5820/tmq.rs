@@ -22,20 +22,20 @@ pub async fn test_tmq() -> anyhow::Result<()> {
     let db = "ts5820";
     let addr = "localhost:6030";
     // let addr = "172.18.0.2:6030";
-    // let _ = tokio::spawn(async move {
-    //     let _ = subscribe(&format!("taos://{}", addr), db, "test").await;
-    // });
-
     let _ = tokio::spawn(async move {
-        match tmq2local(db, addr).await {
-            Ok(_) => {
-                println!("tmq2local success");
-            }
-            Err(e) => {
-                println!("tmq2local error: {:?}", e);
-            }
-        }
+        let _ = subscribe(&format!("taos://{}", addr), db, "test").await;
     });
+
+    // let _ = tokio::spawn(async move {
+    //     match tmq2local(db, addr).await {
+    //         Ok(_) => {
+    //             println!("tmq2local success");
+    //         }
+    //         Err(e) => {
+    //             println!("tmq2local error: {:?}", e);
+    //         }
+    //     }
+    // });
 
     tokio::time::sleep(Duration::from_secs(5)).await;
     producer(&format!("taos://{}", addr), db, 10000000).await?;
@@ -126,17 +126,19 @@ pub async fn subscribe(dsn: &str, db: &str, group_id: &str) -> anyhow::Result<()
     let taos = builder.build().await?;
     // let db = "ts5820";
 
+    let topic = format!("tmq2_{db}");
     // prepare database
     taos.exec_many([
-        "DROP TOPIC IF EXISTS tmq_meters".to_string(),
+        format!("DROP TOPIC IF EXISTS {topic}"),
         format!("DROP DATABASE IF EXISTS `{db}`"),
         format!("CREATE DATABASE `{db}`"),
         format!("USE `{db}`"),
         // create super table
         // "CREATE TABLE `meters` (`ts` TIMESTAMP, `current` FLOAT, `voltage` INT, `phase` FLOAT) TAGS (`groupid` INT, `location` BINARY(16))".to_string(),
-        "create stable meters(ts timestamp, id int, voltage int, v_blob blob) tags(groupid int, location varchar(24));".to_string(),
+        // "create stable meters(ts timestamp, id int, voltage int, v_blob blob) tags(groupid int, location varchar(24));".to_string(),
+        "create stable meters(ts timestamp, id int, voltage int, v_blob varchar(1024)) tags(groupid int, location varchar(24));".to_string(),
         // create topic for subscription
-        format!("CREATE TOPIC tmq_meters with META AS DATABASE {db}")
+        format!("CREATE TOPIC {topic} with META AS DATABASE {db}")
     ])
     .await?;
 
@@ -146,10 +148,10 @@ pub async fn subscribe(dsn: &str, db: &str, group_id: &str) -> anyhow::Result<()
 
     // subscribe
     // let tmq = TmqBuilder::from_dsn("taos://localhost:6030/?group.id=test")?;
-    let tmq = TmqBuilder::from_dsn(format!("{}?group.id={}", dsn, group_id))?;
+    let tmq = TmqBuilder::from_dsn(format!("{}?group.id={}&auto.offset.reset=earliest", dsn, group_id))?;
 
     let mut consumer = tmq.build().await?;
-    consumer.subscribe(["tmq_meters"]).await?;
+    consumer.subscribe([&topic]).await?;
 
     {
         let mut stream = consumer.stream();
@@ -216,7 +218,7 @@ async fn tmq2local(db: &str, addr: &str) -> anyhow::Result<()> {
     writer
         .write_head_async(&Header::new("1.6.0", "3.3.0.0", db.to_string()))
         .await?;
-    let mut consumer = TmqBuilder::from_dsn(format!("taos:///?group.id={}&auto.offset.reset=earliest", "tmq_g2"))?.build().await?;
+    let mut consumer = TmqBuilder::from_dsn(format!("taos://{addr}?group.id={}&auto.offset.reset=earliest", "tmq_g2"))?.build().await?;
     consumer.subscribe([&topic]).await?;
     let writer = Arc::new(tokio::sync::Mutex::new(writer));
     
