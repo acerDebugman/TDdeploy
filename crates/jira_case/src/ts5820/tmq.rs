@@ -17,7 +17,14 @@ pub async fn test_tmq() -> anyhow::Result<()> {
     // });
 
     let _ = tokio::spawn(async move {
-        let _ = tmq2local(db, addr).await;
+        match tmq2local(db, addr).await {
+            Ok(_) => {
+                println!("tmq2local success");
+            }
+            Err(e) => {
+                println!("tmq2local error: {:?}", e);
+            }
+        }
     });
 
     tokio::time::sleep(Duration::from_secs(5)).await;
@@ -172,7 +179,7 @@ pub async fn subscribe(dsn: &str, db: &str, group_id: &str) -> anyhow::Result<()
 
 async fn tmq2local(db: &str, addr: &str) -> anyhow::Result<()> {
     let taos = TaosBuilder::from_dsn(format!("taos://{addr}:6030"))?.build().await?;
-    pretty_env_logger::formatted_builder().filter_level(log::LevelFilter::Debug);
+    // pretty_env_logger::formatted_builder().filter_level(log::LevelFilter::Debug);
     let topic = format!("tmq2_{db}");
     taos.exec_many([
         format!("drop topic if exists `{topic}`"),
