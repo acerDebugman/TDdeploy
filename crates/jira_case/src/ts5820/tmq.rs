@@ -334,7 +334,8 @@ pub async fn test_poll_with_sleep() -> anyhow::Result<()> {
                 }
                 res = consumer.recv_timeout(timeout) => {
                     if let Some((offset, message)) = res? {
-                        println!("recv offset: {:?} msg: {:?}", offset, message);
+                        // println!("recv offset: {:?} msg: {:?}", offset, message);
+                        dbg!("recv msg:", &offset, &message);
                         let (done_tx, done_rx) = oneshot::channel();
                         msg_tx.send((message, done_tx)).await?;
                         let _ = done_rx.await;
