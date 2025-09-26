@@ -1,10 +1,12 @@
 use std::time::Duration;
-use taosx_core::taoz::Header;
-use taosx_core::taoz::ZCodec;
+// use taosx_core::taoz::Header;
+// use taosx_core::taoz::ZCodec;
 use std::sync::Arc;
 use taos::tokio::io::AsyncWriteExt;
 use chrono::{DateTime, Local};
 use taos::*;
+
+use crate::taosz::{Header, ZCodec};
 
 pub async fn test_tmq() -> anyhow::Result<()> {
     let db = "ts5820";
