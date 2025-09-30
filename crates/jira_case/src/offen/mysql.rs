@@ -43,6 +43,7 @@ async fn loop_mysql(addr: &str, db: &str, limit: usize) -> anyhow::Result<()> {
 
         let mut pool_conn = pool.acquire().await?;
         let conn = pool_conn.as_mut();
+        conn.execute(format!("use {db}").as_str()).await?;
         
         // insert into t0(voltage, v_blob, groupid, location) values(123, 'zgc', 10, "bj");
         // insert into t0(voltage, v_blob, groupid, location) values(222, unhex('7a6763'), 10, "bj");
