@@ -1,0 +1,139 @@
+{
+    "from": "",
+    "from_json": {
+      "agent": "",
+      "type": "kafka",
+      "data": {
+        "endpoint": "172.20.0.3:9092",
+        "sasl.isEnable": false,
+        "ssl.isEnable": false,
+        "timeout": "0ms",
+        "topics": "test-topic",
+        "client_id": "c1",
+        "group": "g1",
+        "fallback_offset": "Earliest",
+        "char_encoding": "UTF_8",
+        "read_concurrency": 0,
+        "batch_size": 1000,
+        "written_concurrent": null,
+        "health_check_window_in_second": "0s",
+        "busy_threshold": "100%",
+        "max_queue_length": 1000,
+        "max_errors_in_window": 10
+      }
+    },
+    "name": "kafka",
+    "to": "taos+http://root:taosdata@buildkitsandbox:6041/testdb",
+    "labels": [
+      "type::datain",
+      "cluster-id::390758678966108418",
+      "user::root"
+    ],
+    "parser": {
+      "parser": {
+        "global": {
+          "cache": {
+            "max_size": "1GB",
+            "location": "",
+            "on_fail": "skip"
+          },
+          "archive": {
+            "keep_days": "10d",
+            "max_size": "512MB",
+            "location": "",
+            "on_fail": "rotate"
+          },
+          "database_connection_error": "cache",
+          "database_not_exist": "break",
+          "table_not_exist": "retry",
+          "primary_timestamp_overflow": "archive",
+          "primary_timestamp_null": "archive",
+          "primary_key_null": "archive",
+          "table_name_length_overflow": "archive",
+          "table_name_contains_illegal_char": {
+            "replace_to": ""
+          },
+          "variable_not_exist_in_table_name_template": {
+            "replace_to": ""
+          },
+          "field_name_not_found": "add_field",
+          "field_name_length_overflow": "archive",
+          "field_length_extend": true,
+          "field_length_overflow": "archive",
+          "ingesting_error": "archive",
+          "connection_timeout_in_second": "30s"
+        },
+        "parse": {
+          "value": {
+            "json": ""
+          }
+        },
+        "model": {
+          "name": "t_${id}",
+          "using": "meters",
+          "tags": [
+            "groupid",
+            "location"
+          ],
+          "columns": [
+            "ts",
+            "id",
+            "v_blob"
+          ]
+        },
+        "mutate": [
+          {
+            "map": {
+              "ts": {
+                "cast": "ts",
+                "as": "TIMESTAMP(ms)"
+              },
+              "id": {
+                "cast": "id",
+                "as": "BIGINT"
+              },
+              "v_blob": {
+                "cast": "v_blob",
+                "as": "VARCHAR"
+              },
+              "groupid": {
+                "cast": "groupid",
+                "as": "BIGINT"
+              },
+              "location": {
+                "cast": "location",
+                "as": "VARCHAR"
+              }
+            }
+          }
+        ]
+      },
+      "input": [
+        {
+          "value": "{\"ts\":1759195938536,\"id\":1,\"v_blob\":\"255044462D312E330D0A\",\"groupid\":1,\"location\":\"BeiJing\"}",
+          "key": "key-1"
+        },
+        {
+          "value": "{\"ts\":1759195940555,\"id\":0,\"v_blob\":\"255044462D312E330D0A\",\"groupid\":0,\"location\":\"BeiJing\"}",
+          "key": "key-3"
+        },
+        {
+          "value": "{\"ts\":1759195943586,\"id\":0,\"v_blob\":\"255044462D312E330D0A\",\"groupid\":0,\"location\":\"BeiJing\"}",
+          "key": "key-6"
+        },
+        {
+          "value": "{\"ts\":1759195944597,\"id\":1,\"v_blob\":\"255044462D312E330D0A\",\"groupid\":1,\"location\":\"BeiJing\"}",
+          "key": "key-7"
+        },
+        {
+          "value": "{\"ts\":1759195946615,\"id\":0,\"v_blob\":\"255044462D312E330D0A\",\"groupid\":0,\"location\":\"BeiJing\"}",
+          "key": "key-9"
+        }
+      ],
+      "format": {
+        "pageCount": 6,
+        "pageSize": 20,
+        "currentPage": 1
+      }
+    }
+  }

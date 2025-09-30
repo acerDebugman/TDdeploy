@@ -74,3 +74,4 @@ insert into t3 using meters tags(3) values(now, 33.1),(now+1s,33.2),(now+2s,33.3
 insert into t4 using meters tags(4) values(now, 44.1),(now+1s,44.2),(now+2s,44.3),(now+3s,43.1),(now+4s,43.2),(now+5s,43.3);\
 insert into t5 using meters tags(5) values(now, 55.1),(now+1s,55.2),(now+2s,55.3),(now+3s,54.1),(now+4s,54.2),(now+5s,55.3);\
 ```
+
