@@ -4,11 +4,11 @@ use sqlx::{mysql::MySqlPoolOptions, Executor};
 pub async fn mysql_main() -> anyhow::Result<()> {
     let addr = "mysql:3306";
     let db = "test";
-    loop_mysql(addr, db).await?;
+    loop_mysql(addr, db, 3).await?;
     Ok(())
 }
 
-async fn loop_mysql(addr: &str, db: &str) -> anyhow::Result<()> {
+async fn loop_mysql(addr: &str, db: &str, limit: usize) -> anyhow::Result<()> {
     let pool = MySqlPoolOptions::new()
         .max_connections(5)
         .connect(&format!("mysql://root:taosdata@{addr}")).await?;
@@ -20,31 +20,48 @@ async fn loop_mysql(addr: &str, db: &str) -> anyhow::Result<()> {
     let mut pool_conn = pool.acquire().await?;
     let conn = pool_conn.as_mut();
     conn.execute(format!("use {db}").as_str()).await?;
-    sqlx::raw_sql(r#"
-        drop table if exists t0;
-        CREATE TABLE `t0` (
-            `id` int NOT NULL AUTO_INCREMENT,
-            `voltage` int NOT NULL,
-            `v_blob` blob NOT NULL,
-            `groupid` int NOT NULL,
-            `location` varchar(24) NOT NULL,
-            `time` datetime DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (`id`)
-        );
-        insert into t0(voltage, v_blob, groupid, location) values(123, 'zgc', 10, "bj");
-        insert into t0(voltage, v_blob, groupid, location) values(222, unhex('7a6763'), 10, "bj");
-    "#).execute(conn)
-        .await?;
-    
-    let rows = sqlx::query(
-        r#"
-        select id, voltage, v_blob, groupid, location from t0;
-        "#,
-    ).fetch_all(&pool)
-    .await?;
 
-    for row in rows {
-        println!("{:?}", row);
+    let mut idx = 0;
+    loop {
+        if idx >= limit {
+            break;
+        }
+        idx += 1;
+
+        sqlx::raw_sql(r#"
+            drop table if exists t0;
+            CREATE TABLE `t0` (
+                `id` int NOT NULL AUTO_INCREMENT,
+                `voltage` int NOT NULL,
+                `v_blob` blob NOT NULL,
+                `groupid` int NOT NULL,
+                `location` varchar(24) NOT NULL,
+                `time` datetime DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (`id`)
+            );
+        "#).execute(conn)
+            .await?;
+        // insert into t0(voltage, v_blob, groupid, location) values(123, 'zgc', 10, "bj");
+        // insert into t0(voltage, v_blob, groupid, location) values(222, unhex('7a6763'), 10, "bj");
+
+        conn.execute(
+            format!(
+                r#"
+                    insert into t0(voltage, v_blob, groupid, location) values(222, unhex('7a6763'), {}, "bj");
+                "#, idx
+            ).as_str()
+        ).await?;
+
+        let rows = sqlx::query(
+            r#"
+            select id, voltage, v_blob, groupid, location from t0 order by id desc limit 1;
+            "#,
+        ).fetch_all(&pool)
+        .await?;
+
+        for row in rows {
+            println!("result: {:?}", row);
+        }
     }
     
     println!("loop mysql");
