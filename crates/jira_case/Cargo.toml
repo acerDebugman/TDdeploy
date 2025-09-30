@@ -83,8 +83,10 @@ tracing-opentelemetry = { workspace = true }
 #tmp-to-local = { path = "/home/algo/rust_space/taosx/crates/tmq-to-local", package = "tmq-to-local" }
 tmp-to-local.workspace = true
 
-
 taos.workspace = true
+
+sqlx.workspace = true
+sqlx-postgres.workspace = true
 
 [dev-dependencies]
 #assert_cmd.workspace = true

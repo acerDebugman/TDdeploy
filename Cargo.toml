@@ -85,10 +85,29 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3" }
 tracing-opentelemetry = { version = "0.31" }
 
-
 taosx-core = { path = "../taosx/taosx-core" }
 taosx-ipc = { path = "../taosx/taosx-ipc" }
 tmp-to-local = { path = "../taosx/crates/tmq-to-local", package = "tmq-to-local" }
+
+mongodb = { version = "3.0.0", features = [
+  "aws-auth",
+  "zstd-compression",
+  "zlib-compression",
+  "snappy-compression",
+  "openssl-tls",
+] }
+sqlx = { version = "0.8.0", features = [
+  "mysql",
+  "runtime-tokio",
+  "chrono",
+  "bigdecimal",
+  "tls-rustls",
+] }
+sqlx-postgres = { version = "0.8", features = [
+  "chrono",
+  "bigdecimal",
+  "bit-vec",
+] }
 
 
 [workspace.dependencies.taos]
