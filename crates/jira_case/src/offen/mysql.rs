@@ -20,6 +20,19 @@ async fn loop_mysql(addr: &str, db: &str, limit: usize) -> anyhow::Result<()> {
     let mut pool_conn = pool.acquire().await?;
     let conn = pool_conn.as_mut();
     conn.execute(format!("use {db}").as_str()).await?;
+    sqlx::raw_sql(r#"
+        drop table if exists t0;
+        CREATE TABLE `t0` (
+            `id` int NOT NULL AUTO_INCREMENT,
+            `voltage` int NOT NULL,
+            `v_blob` blob NOT NULL,
+            `groupid` int NOT NULL,
+            `location` varchar(24) NOT NULL,
+            `time` datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`)
+        );
+    "#).execute(conn)
+        .await?;
 
     let mut idx = 0;
     loop {
@@ -28,29 +41,19 @@ async fn loop_mysql(addr: &str, db: &str, limit: usize) -> anyhow::Result<()> {
         }
         idx += 1;
 
-        sqlx::raw_sql(r#"
-            drop table if exists t0;
-            CREATE TABLE `t0` (
-                `id` int NOT NULL AUTO_INCREMENT,
-                `voltage` int NOT NULL,
-                `v_blob` blob NOT NULL,
-                `groupid` int NOT NULL,
-                `location` varchar(24) NOT NULL,
-                `time` datetime DEFAULT CURRENT_TIMESTAMP,
-                PRIMARY KEY (`id`)
-            );
-        "#).execute(conn)
-            .await?;
+        let mut pool_conn = pool.acquire().await?;
+        let conn = pool_conn.as_mut();
+        
         // insert into t0(voltage, v_blob, groupid, location) values(123, 'zgc', 10, "bj");
         // insert into t0(voltage, v_blob, groupid, location) values(222, unhex('7a6763'), 10, "bj");
-
-        conn.execute(
+        sqlx::raw_sql(
             format!(
                 r#"
                     insert into t0(voltage, v_blob, groupid, location) values(222, unhex('7a6763'), {}, "bj");
                 "#, idx
             ).as_str()
-        ).await?;
+        ).execute(conn)
+            .await?;
 
         let rows = sqlx::query(
             r#"
