@@ -32,7 +32,7 @@ async fn loop_mysql(addr: &str, db: &str) -> anyhow::Result<()> {
             PRIMARY KEY (`id`)
         );
         insert into t0(voltage, v_blob, groupid, location) values(123, 'zgc', 10, "bj");
-        insert into t0(voltage, v_blob, groupid, location) values(222, unhex('\x7a6763'), 10, "bj");
+        insert into t0(voltage, v_blob, groupid, location) values(222, unhex('7a6763'), 10, "bj");
     "#).execute(conn)
         .await?;
     
