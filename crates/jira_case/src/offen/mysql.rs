@@ -57,9 +57,11 @@ async fn loop_mysql(addr: &str, db: &str, limit: usize) -> anyhow::Result<()> {
             .await?;
 
         let rows = sqlx::query(
-            r#"
-            select id, voltage, v_blob, groupid, location from t0 order by id desc limit 1;
-            "#,
+            format!(
+                r#"
+                    select id, voltage, v_blob, groupid, location from {}.t0 order by id desc limit 1;
+                "#, db
+            ).as_str()
         ).fetch_all(&pool)
         .await?;
 
