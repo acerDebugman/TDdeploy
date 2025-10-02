@@ -1,0 +1,225 @@
+[
+    {
+        "id": 1,
+        "from": "mysql://root:taosdata@mysql:3306/test?batch_size=10000&busy_threshold=100%&charset=utf8&dea7d812-3c76-40a5-bb8a-1048945f79cb=plain&delay=0s&end=2025-09-30T18:29:55+08:00&health_check_window_in_second=0s&interval=1d&max_errors_in_window=10&max_queue_length=1000&read_concurrency=0&sql=SELECT%20%2A%20FROM%20t0%20WHERE%20time%20%3E%3D%20%24%7Bstart%7D%20AND%20time%20%3C%20%24%7Bend%7D%20ORDER%20BY%20time&ssl_mode=PREFERRED&start=2025-09-30T00:00:00+08:00&subtable_fields=select distinct groupid,location from t0;",
+        "oneshot_topic": null,
+        "to": "taos+http://root:taosdata@fractal-x:6041/zgc",
+        "parser": {
+            "parser": {
+                "global": {
+                    "cache": {
+                        "max_size": "1GB",
+                        "location": "",
+                        "on_fail": "skip"
+                    },
+                    "archive": {
+                        "keep_days": "30d",
+                        "max_size": "1GB",
+                        "location": "",
+                        "on_fail": "rotate"
+                    },
+                    "database_connection_error": "cache",
+                    "database_not_exist": "break",
+                    "table_not_exist": "retry",
+                    "primary_timestamp_overflow": "archive",
+                    "primary_timestamp_null": "archive",
+                    "primary_key_null": "archive",
+                    "table_name_length_overflow": "archive",
+                    "table_name_contains_illegal_char": {
+                        "replace_to": ""
+                    },
+                    "variable_not_exist_in_table_name_template": {
+                        "replace_to": ""
+                    },
+                    "field_name_not_found": "add_field",
+                    "field_name_length_overflow": "archive",
+                    "field_length_extend": true,
+                    "field_length_overflow": "archive",
+                    "ingesting_error": "archive",
+                    "connection_timeout_in_second": "30s"
+                },
+                "parse": {
+                    "id": {
+                        "as": "int"
+                    },
+                    "voltage": {
+                        "as": "int"
+                    },
+                    "v_blob": {
+                        "as": "nchar(50)"
+                    },
+                    "groupid": {
+                        "as": "int"
+                    },
+                    "location": {
+                        "as": "nchar(50)"
+                    },
+                    "time": {
+                        "as": "nchar(50)"
+                    }
+                },
+                "model": {
+                    "name": "t_{id}",
+                    "using": "meters",
+                    "tags": [
+                        "groupid",
+                        "location"
+                    ],
+                    "columns": [
+                        "ts",
+                        "id",
+                        "voltage",
+                        "v_blob"
+                    ]
+                },
+                "mutate": [
+                    {
+                        "map": {
+                            "ts": {
+                                "cast": "time",
+                                "as": "TIMESTAMP(ms)"
+                            },
+                            "id": {
+                                "cast": "id",
+                                "as": "INT"
+                            },
+                            "voltage": {
+                                "cast": "voltage",
+                                "as": "INT"
+                            },
+                            "v_blob": {
+                                "cast": "v_blob",
+                                "as": "VARCHAR"
+                            },
+                            "groupid": {
+                                "cast": "groupid",
+                                "as": "INT"
+                            },
+                            "location": {
+                                "cast": "location",
+                                "as": "VARCHAR"
+                            }
+                        }
+                    }
+                ]
+            },
+            "input": [
+                {
+                    "id": 1,
+                    "voltage": 222,
+                    "v_blob": "[122, 103, 99]",
+                    "groupid": 1,
+                    "location": "bj",
+                    "time": "2025-09-30T10:07:09"
+                },
+                {
+                    "id": 2,
+                    "voltage": 222,
+                    "v_blob": "[122, 103, 99]",
+                    "groupid": 2,
+                    "location": "bj",
+                    "time": "2025-09-30T10:07:09"
+                },
+                {
+                    "id": 3,
+                    "voltage": 222,
+                    "v_blob": "[122, 103, 99]",
+                    "groupid": 3,
+                    "location": "bj",
+                    "time": "2025-09-30T10:07:09"
+                }
+            ],
+            "format": {
+                "pageCount": 7,
+                "pageSize": 20,
+                "currentPage": 1
+            }
+        },
+        "to_cluster": null,
+        "jobs": 0,
+        "compression_level": null,
+        "created_at": "2025-09-30T10:32:48.474Z",
+        "finished_at": "2025-09-30T10:32:54.225Z",
+        "status": "queued",
+        "reason": null,
+        "completed": false,
+        "name": "mysql",
+        "trigger": {
+            "resume": "always",
+            "health": {
+                "health_check_window_in_second": 60,
+                "health_check_interval_in_second": 5,
+                "busy_threshold": 1.0,
+                "max_queue_length": 1000,
+                "max_errors_in_window": 10,
+                "repeat_errors": false,
+                "broadcast_capacity": 64
+            },
+            "upcoming": null
+        },
+        "labels": [
+            "cluster-id::2813706596449499514",
+            "type::datain",
+            "user::root"
+        ],
+        "from_json": {
+            "type": "mysql",
+            "data": {
+                "username": "root",
+                "password": "taosdata",
+                "host": "mysql",
+                "port": 3306,
+                "subject": "test",
+                "batch_size": "10000",
+                "busy_threshold": "100%",
+                "charset": "utf8",
+                "dea7d812-3c76-40a5-bb8a-1048945f79cb": "plain",
+                "delay": "0s",
+                "end": "2025-09-30T18:29:55+08:00",
+                "health_check_window_in_second": "0s",
+                "interval": "1d",
+                "max_errors_in_window": "10",
+                "max_queue_length": "1000",
+                "read_concurrency": "0",
+                "sql": "SELECT * FROM t0 WHERE time >= ${start} AND time < ${end} ORDER BY time",
+                "ssl_mode": "PREFERRED",
+                "start": "2025-09-30T00:00:00+08:00",
+                "subtable_fields": "select distinct groupid,location from t0;"
+            }
+        },
+        "from_expand": {
+            "id": "mysql",
+            "host": "mysql",
+            "port": 3306,
+            "username": "root",
+            "password": "taosdata",
+            "subject": "test",
+            "params": {
+                "batch_size": "10000",
+                "busy_threshold": "100%",
+                "charset": "utf8",
+                "dea7d812-3c76-40a5-bb8a-1048945f79cb": "plain",
+                "delay": "0s",
+                "end": "2025-09-30T18:29:55+08:00",
+                "health_check_window_in_second": "0s",
+                "interval": "1d",
+                "max_errors_in_window": "10",
+                "max_queue_length": "1000",
+                "read_concurrency": "0",
+                "sql": "SELECT * FROM t0 WHERE time >= ${start} AND time < ${end} ORDER BY time",
+                "ssl_mode": "PREFERRED",
+                "start": "2025-09-30T00:00:00+08:00",
+                "subtable_fields": "select distinct groupid,location from t0;"
+            }
+        },
+        "to_expand": {
+            "id": "taos",
+            "protocol": "http",
+            "host": "fractal-x",
+            "port": 6041,
+            "username": "root",
+            "password": "taosdata",
+            "subject": "zgc"
+        }
+    }
+]
