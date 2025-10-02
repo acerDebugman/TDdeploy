@@ -1,0 +1,4 @@
+/home/algo/rust_space/TDdeploy/coding_tips/build/CMakeFiles/try_thread.dir
+/home/algo/rust_space/TDdeploy/coding_tips/build/CMakeFiles/thread_in_turn.dir
+/home/algo/rust_space/TDdeploy/coding_tips/build/CMakeFiles/edit_cache.dir
+/home/algo/rust_space/TDdeploy/coding_tips/build/CMakeFiles/rebuild_cache.dir

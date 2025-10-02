@@ -1,0 +1,1 @@
+/usr/bin/cc -g -Wl,--dependency-file=CMakeFiles/try_thread.dir/link.d CMakeFiles/try_thread.dir/thread_in_turn/try_thread.c.o -o try_thread
