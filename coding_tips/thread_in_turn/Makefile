@@ -1,0 +1,14 @@
+CC = gcc
+CFLAGS = -Wall -g
+LDFLAGS = -pthread
+
+all: my_program
+
+my_program: try_thread.o
+	$(CC) $(CFLAGS) -o a.out try_thread.o $(LDFLAGS)
+
+try_thread.o: try_thread.c
+	$(CC) $(CFLAGS) -c try_thread.c
+
+clean:
+	rm -f *.o my_program a.out
