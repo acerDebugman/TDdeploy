@@ -12,3 +12,4 @@ try_thread.o: try_thread.c
 
 clean:
 	rm -f *.o my_program a.out
+

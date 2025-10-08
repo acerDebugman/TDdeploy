@@ -1,5 +1,18 @@
 {
     "files.associations": {
-        "*.inc": "c"
+        "*.inc": "c",
+        "compare": "c",
+        "xstr.h": "c",
+        "pthread.h": "c",
+        "complex": "c",
+        "numeric": "c",
+        "streambuf": "c",
+        "system_error": "c",
+        "tuple": "c",
+        "random": "c",
+        "*.def": "c",
+        "istream": "c",
+        "ostream": "c",
+        "typeinfo": "c"
     }
 }
