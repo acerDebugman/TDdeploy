@@ -109,6 +109,7 @@ sqlx-postgres = { version = "0.8", features = [
   "bit-vec",
 ] }
 
+sled = "0.34.7"
 
 [workspace.dependencies.taos]
 # path = "../taos-connector-rust/taos"
