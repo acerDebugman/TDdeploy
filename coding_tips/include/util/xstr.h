@@ -1,5 +1,5 @@
-#ifndef GC_XSTR_H_
-#define GC_XSTR_H_
+#ifndef _ZGC_XSTR_H_
+#define _ZGC_XSTR_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -12,4 +12,4 @@ char* xitoa(int num);
 }
 #endif
 
-#endif /*GC_XSTR_H_*/
+#endif /*_ZGC_XSTR_H_*/

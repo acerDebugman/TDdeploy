@@ -13,6 +13,18 @@
         "*.def": "c",
         "istream": "c",
         "ostream": "c",
-        "typeinfo": "c"
+        "typeinfo": "c",
+        "numbers": "cpp",
+        "array": "cpp",
+        "deque": "cpp",
+        "list": "cpp",
+        "string": "cpp",
+        "unordered_map": "cpp",
+        "vector": "cpp",
+        "string_view": "cpp",
+        "initializer_list": "cpp",
+        "cmath": "cpp",
+        "functional": "cpp",
+        "type_traits": "cpp"
     }
 }
