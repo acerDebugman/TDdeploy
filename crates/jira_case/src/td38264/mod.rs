@@ -1,12 +1,21 @@
 use std::{fs::OpenOptions, sync::Arc};
 
-use arrow::array::{RecordBatch, StringArray, TimestampNanosecondArray};
+use arrow::array::{RecordBatch, StringArray, StringBuilder, TimestampNanosecondArray};
 use arrow_schema::{DataType, Field, Schema};
 use chrono::Utc;
 use parquet::{arrow::ArrowWriter, basic::{Compression, ZstdLevel}, file::properties::WriterProperties};
 
 
 pub fn td38264_main() -> anyhow::Result<()> {
+
+    for _ in 0..1024 {
+        pressing_test_parquet()?;
+    }
+
+    Ok(())
+}
+
+pub fn pressing_test_parquet() -> anyhow::Result<()> {
     // let batch = arrow::array::record_batch!(
     //     (
     //         "test1",
@@ -16,16 +25,48 @@ pub fn td38264_main() -> anyhow::Result<()> {
     //     ("test2", Binary, [b"1234567890", &b"12345".repeat(10)]),
     //     ("name", Utf8, ["r1", "r2"])
     // )?;
-    let batch = arrow::array::record_batch!(
-        (
-            "test1",
-            Utf8,
-            ["1234567890", "1234567890"]
-        ),
-        ("name", Utf8, ["r1", "r2"])
+    const ROW_CNT: usize = 3;
+    // let test1_vec = vec!["1234567890"; ROW_CNT];
+    // let name_vec = vec!["r1"; ROW_CNT];
+
+    let flat_columns = vec![
+        arrow::datatypes::Field::new("test1", DataType::Utf8, true),
+        arrow::datatypes::Field::new("name", DataType::Utf8, true),
+    ];
+
+    let schema = Schema::new(flat_columns);
+    let mut test_builder = StringBuilder::new();
+    for _ in 0..ROW_CNT {
+        test_builder.append_value("1");
+    }
+    let mut name_builder = StringBuilder::new();
+    if ROW_CNT > 13 {
+        for _ in 0..3 {
+            name_builder.append_option(None::<&str>);
+        }
+        for _ in 0..10 {
+            name_builder.append_option(Some("r1"));
+        }
+        for _ in 0..(ROW_CNT - 13) {
+            name_builder.append_option(Some("r2"));
+        }
+    } else {
+        for _ in 0..ROW_CNT {
+            name_builder.append_option(Some("r1"));
+        }
+    }
+
+    let batch = RecordBatch::try_new(
+        Arc::new(schema),
+        vec![
+            Arc::new(test_builder.finish()),
+            Arc::new(name_builder.finish()),
+        ],
     )?;
 
-    let err_vec = vec!["z".repeat(1024 * 1024); batch.num_rows()];
+    let err_msg = include!("err_insert.txt");
+    let err_vec = vec![err_msg.to_string(); batch.num_rows()];
+    // let err_vec = vec![err_msg.repeat(1024 * 1024); batch.num_rows()];
     let err_timestamp_vec = vec![Utc::now().timestamp_nanos_opt().unwrap(); batch.num_rows()];
     let batch = build_archive_batch(&batch, err_vec, err_timestamp_vec)?.ok_or_else(|| anyhow::anyhow!("build archive batch failed"))?;
     recordbatch_to_parquet(&batch, "/tmp/td38264.parquet")?;
