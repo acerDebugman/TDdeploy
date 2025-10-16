@@ -111,6 +111,9 @@ sqlx-postgres = { version = "0.8", features = [
 
 sled = "0.34.7"
 
+pulsar = "6.4.1"
+env_logger = "0.11.8"
+
 [workspace.dependencies.taos]
 # path = "../taos-connector-rust/taos"
 rev = "0e479909c050f12f592186cc4111086bf652c01c"

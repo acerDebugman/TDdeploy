@@ -4,3 +4,4 @@ pub mod taosz;
 pub mod offen;
 pub mod ts7433;
 pub mod td38264;
+pub mod ts7448;
