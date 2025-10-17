@@ -1,4 +1,5 @@
-use serde::{Deserialize, Serialize};
+#[macro_use]
+extern crate serde;
 use std::env;
 
 use pulsar::{
@@ -87,7 +88,7 @@ async fn main() -> Result<(), pulsar::Error> {
         log::info!("{counter} messages");
         tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
 
-        if counter >= 300 {
+        if counter >= 3 {
             producer.close().await.expect("Unable to close connection");
             break;
         }

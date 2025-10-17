@@ -1,4 +1,5 @@
-use serde::{Deserialize, Serialize};
+#[macro_use]
+extern crate serde;
 use std::env;
 
 use futures::TryStreamExt;

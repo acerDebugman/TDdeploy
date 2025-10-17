@@ -2,10 +2,10 @@
 extern crate serde;
 use std::env;
 
-use futures::TryStreamExt;
 use pulsar::{
     authentication::{basic::BasicAuthentication, oauth2::OAuth2Authentication},
-    Authentication, Consumer, DeserializeMessage, Payload, Pulsar, SubType, TokioExecutor,
+    message::proto,
+    producer, Authentication, Error as PulsarError, Pulsar, SerializeMessage, TokioExecutor,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -13,11 +13,13 @@ struct TestData {
     data: String,
 }
 
-impl DeserializeMessage for TestData {
-    type Output = Result<TestData, serde_json::Error>;
-
-    fn deserialize_message(payload: &Payload) -> Self::Output {
-        serde_json::from_slice(&payload.data)
+impl SerializeMessage for TestData {
+    fn serialize_message(input: Self) -> Result<producer::Message, PulsarError> {
+        let payload = serde_json::to_vec(&input).map_err(|e| PulsarError::Custom(e.to_string()))?;
+        Ok(producer::Message {
+            payload,
+            ..Default::default()
+        })
     }
 }
 
@@ -33,7 +35,8 @@ async fn main() -> Result<(), pulsar::Error> {
     //     .unwrap_or_else(|| "non-persistent://public/default/test".to_string());
     let topic = env::var("PULSAR_TOPIC")
         .ok()
-        .unwrap_or_else(|| "persistent://public/default/zgc".to_string());
+        .unwrap_or_else(|| "persistent://public/default/abc123".to_string());
+
 
     let mut builder = Pulsar::builder(addr, TokioExecutor);
 
@@ -57,45 +60,38 @@ async fn main() -> Result<(), pulsar::Error> {
     }
 
     let pulsar: Pulsar<_> = builder.build().await?;
-
-    let mut consumer: Consumer<TestData, _> = pulsar
-        .consumer()
+    let mut producer = pulsar
+        .producer()
         .with_topic(topic)
-        .with_consumer_name("test_consumer")
-        // .with_subscription_type(SubType::Exclusive)
-        .with_subscription_type(SubType::Shared)
-        // .with_subscription_type(SubType::Failover)
-        .with_subscription("test_subscription")
+        .with_name("my producer")
+        .with_options(producer::ProducerOptions {
+            schema: Some(proto::Schema {
+                r#type: proto::schema::Type::String as i32,
+                ..Default::default()
+            }),
+            ..Default::default()
+        })
         .build()
         .await?;
 
-    // consumer.seek(None, message_id, timestamp, None);
-
     let mut counter = 0usize;
-    while let Some(msg) = consumer.try_next().await? {
-        consumer.ack(&msg).await?;
-        log::info!("metadata: {:?}", msg.metadata());
-        log::info!("id: {:?}", msg.message_id());
-        let data = match msg.deserialize() {
-            Ok(data) => data,
-            Err(e) => {
-                log::error!("could not deserialize message: {:?}", e);
-                break;
-            }
-        };
+    loop {
+        producer
+            .send_non_blocking(TestData {
+                data: "data".to_string(),
+            })
+            .await?
+            .await
+            .unwrap();
 
-        if data.data.as_str() != "data" {
-            log::error!("Unexpected payload: {}", &data.data);
-            break;
-        }
         counter += 1;
-        log::info!("got {} messages", counter);
+        log::info!("{counter} messages");
+        tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
 
-        if counter > 10 {
-            consumer.close().await.expect("Unable to close consumer");
+        if counter >= 5 {
+            producer.close().await.expect("Unable to close connection");
             break;
         }
     }
-
     Ok(())
 }

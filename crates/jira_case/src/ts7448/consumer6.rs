@@ -21,6 +21,7 @@ impl DeserializeMessage for TestData {
     }
 }
 
+// 测试 TLS
 #[tokio::main]
 async fn main() -> Result<(), pulsar::Error> {
     env_logger::init();
@@ -33,7 +34,7 @@ async fn main() -> Result<(), pulsar::Error> {
     //     .unwrap_or_else(|| "non-persistent://public/default/test".to_string());
     let topic = env::var("PULSAR_TOPIC")
         .ok()
-        .unwrap_or_else(|| "persistent://public/default/*".to_string());
+        .unwrap_or_else(|| "persistent://public/default/abc*".to_string());
     let topic_zgc = env::var("PULSAR_TOPIC")
         .ok()
         .unwrap_or_else(|| "persistent://public/default/zgc".to_string());
@@ -58,13 +59,14 @@ async fn main() -> Result<(), pulsar::Error> {
     ) {
         builder = builder.with_auth_provider(BasicAuthentication::new(&username, &password))
     }
+    builder.with_certificate_chain(certificate_chain);
 
     let pulsar: Pulsar<_> = builder.build().await?;
 
     let mut consumer: Consumer<TestData, _> = pulsar
         .consumer()
         // .with_topic(topic)
-        // .with_topics(vec![topic])
+        .with_topics(vec![topic_zgc])
         .with_topic_regex(regex::Regex::new(topic.as_str()).unwrap())
         .with_consumer_name("test_consumer3")
         // .with_subscription_type(SubType::Exclusive)
@@ -80,7 +82,7 @@ async fn main() -> Result<(), pulsar::Error> {
         log::info!("metadata: {:?}", msg.metadata());
         log::info!("id: {:?}", msg.message_id());
         tokio::time::sleep(std::time::Duration::from_secs(3)).await;
-        panic!("test no ack");
+        // panic!("test no ack");
         consumer.ack(&msg).await?;
         let data = match msg.deserialize() {
             Ok(data) => data,
@@ -97,7 +99,7 @@ async fn main() -> Result<(), pulsar::Error> {
         counter += 1;
         log::info!("got {} messages", counter);
 
-        if counter > 10 {
+        if counter > 100 {
             consumer.close().await.expect("Unable to close consumer");
             break;
         }
