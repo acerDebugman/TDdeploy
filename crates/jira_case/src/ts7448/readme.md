@@ -62,6 +62,11 @@ pulsar-admin topics create-partitioned-topic \
 cargo test --package source-pulsar --lib -- config::connect::tests::test_parse_broker_url --exact --show-output --nocapture
 ```
 
+## 依赖组件
+```
+apt-get install protobuf-compiler
+```
+
 
 ## todo
 ### 需要添加表
