@@ -29,14 +29,14 @@ async fn main() -> Result<(), pulsar::Error> {
 
     let addr = env::var("PULSAR_ADDRESS")
         .ok()
-        .unwrap_or_else(|| "pulsar://127.0.0.1:6650".to_string());
+        .unwrap_or_else(|| "pulsar://192.168.2.131:6650".to_string());
+        // .unwrap_or_else(|| "pulsar://127.0.0.1:6650".to_string());
     // let topic = env::var("PULSAR_TOPIC")
     //     .ok()
     //     .unwrap_or_else(|| "non-persistent://public/default/test".to_string());
     let topic = env::var("PULSAR_TOPIC")
         .ok()
         .unwrap_or_else(|| "persistent://public/default/pt-zgc".to_string());
-
 
     let mut builder = Pulsar::builder(addr, TokioExecutor);
 
