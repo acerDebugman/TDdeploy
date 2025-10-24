@@ -96,13 +96,13 @@ async fn main() -> Result<(), pulsar::Error> {
     let last_msg_id = consumer.get_last_message_id().await?;
     log::info!("xxxzgc last_msg_id: {:?}", last_msg_id);
 
-    // let earliest_id_data = MessageIdData {
-    //     ledger_id: u64::MAX,
-    //     entry_id: u64::MAX,
-    //     ..Default::default()
-    // };
-    // consumer.seek(Some(consumer.topics()), Some(earliest_id_data.clone()), None, pulsar).await?;
-    // log::info!("seek to earliest_id_data: {:?}", earliest_id_data);
+    let earliest_id_data = MessageIdData {
+        ledger_id: u64::MAX,
+        entry_id: u64::MAX,
+        ..Default::default()
+    };
+    consumer.seek(Some(consumer.topics()), Some(earliest_id_data.clone()), None, pulsar).await?;
+    log::info!("seek to earliest_id_data: {:?}", earliest_id_data);
     // let latest_id_data = MessageIdData {
     //     ledger_id: u64::MAX,
     //     entry_id: u64::MAX,
@@ -110,13 +110,13 @@ async fn main() -> Result<(), pulsar::Error> {
     // };
     // consumer.seek(Some(consumer.topics()), Some(latest_id_data), None, pulsar).await?;
     // log::info!("seek to latest_id_data: {:?}", latest_id_data);
-    let msg_id_data = MessageIdData {
-        ledger_id: 5,
-        entry_id: 2,
-        ..Default::default()
-    };
-    consumer.seek(Some(consumer.topics()), Some(msg_id_data.clone()), None, pulsar).await?;
-    log::info!("seek to msg_id_data: {:?}", msg_id_data);
+    // let msg_id_data = MessageIdData {
+    //     ledger_id: 5,
+    //     entry_id: 2,
+    //     ..Default::default()
+    // };
+    // consumer.seek(Some(consumer.topics()), Some(msg_id_data.clone()), None, pulsar).await?;
+    // log::info!("seek to msg_id_data: {:?}", msg_id_data);
 
     let mut counter = 0usize;
     while let Some(msg) = consumer.try_next().await? {
