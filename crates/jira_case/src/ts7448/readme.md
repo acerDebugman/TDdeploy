@@ -47,6 +47,21 @@ refer:
 https://pulsar.apache.org/docs/4.1.x/getting-started-docker/
 
 
+### 命令行使用
+登录进入 broker 添加topic:
+```
+pulsar-admin topics create-partitioned-topic \
+    persistent://public/default/pt-zgc \
+    --partitions 12
+```
+
+
+## 测试命令
+
+```
+cargo test --package source-pulsar --lib -- config::connect::tests::test_parse_broker_url --exact --show-output --nocapture
+```
+
 
 ## todo
 ### 需要添加表

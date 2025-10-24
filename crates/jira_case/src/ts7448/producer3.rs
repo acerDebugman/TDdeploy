@@ -1,4 +1,5 @@
 #[macro_use]
+extern crate serde;
 use std::env;
 
 use pulsar::{
@@ -6,7 +7,6 @@ use pulsar::{
     message::proto,
     producer, Authentication, Error as PulsarError, Pulsar, SerializeMessage, TokioExecutor,
 };
-use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 struct TestData {
@@ -35,7 +35,7 @@ async fn main() -> Result<(), pulsar::Error> {
     //     .unwrap_or_else(|| "non-persistent://public/default/test".to_string());
     let topic = env::var("PULSAR_TOPIC")
         .ok()
-        .unwrap_or_else(|| "persistent://public/default/zgc".to_string());
+        .unwrap_or_else(|| "persistent://public/default/pt-zgc".to_string());
 
 
     let mut builder = Pulsar::builder(addr, TokioExecutor);
@@ -66,6 +66,7 @@ async fn main() -> Result<(), pulsar::Error> {
         .with_name("my producer")
         .with_options(producer::ProducerOptions {
             schema: Some(proto::Schema {
+                // r#type: proto::schema::Type::String as i32,
                 r#type: proto::schema::Type::String as i32,
                 ..Default::default()
             }),
@@ -88,7 +89,7 @@ async fn main() -> Result<(), pulsar::Error> {
         log::info!("{counter} messages");
         tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
 
-        if counter >= 3 {
+        if counter >= 5 {
             producer.close().await.expect("Unable to close connection");
             break;
         }

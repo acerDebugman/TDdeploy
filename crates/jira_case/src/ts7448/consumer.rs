@@ -1,5 +1,5 @@
 #[macro_use]
-extern crate serde;
+use serde::{Deserialize, Serialize};
 use std::env;
 
 use futures::TryStreamExt;
@@ -21,8 +21,7 @@ impl DeserializeMessage for TestData {
     }
 }
 
-#[tokio::main]
-async fn main() -> Result<(), pulsar::Error> {
+pub async fn consumer_main1() -> Result<(), pulsar::Error> {
     env_logger::init();
 
     let addr = env::var("PULSAR_ADDRESS")
