@@ -100,7 +100,8 @@ async fn main() -> Result<(), pulsar::Error> {
         entry_id: u64::MAX,
         ..Default::default()
     };
-    consumer.seek(Some(consumer.topics()), Some(earliest_id_data), None, pulsar).await?;
+    consumer.seek(Some(consumer.topics()), Some(earliest_id_data.clone()), None, pulsar).await?;
+    log::info!("seek to earliest_id_data: {:?}", earliest_id_data);
     // let latest_id_data = MessageIdData {
     //     ledger_id: u64::MAX,
     //     entry_id: u64::MAX,
