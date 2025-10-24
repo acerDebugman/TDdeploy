@@ -89,7 +89,7 @@ async fn main() -> Result<(), pulsar::Error> {
         log::info!("{counter} messages");
         tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
 
-        if counter >= 5 {
+        if counter >= 12 {
             producer.close().await.expect("Unable to close connection");
             break;
         }
