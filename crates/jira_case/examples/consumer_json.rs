@@ -4,7 +4,7 @@ use std::env;
 
 use futures::{StreamExt, TryStreamExt};
 use pulsar::{
-    authentication::{basic::BasicAuthentication, oauth2::OAuth2Authentication}, consumer::data::MessageData, Authentication, Consumer, DeserializeMessage, Payload, Pulsar, SubType, TokioExecutor
+    authentication::{basic::BasicAuthentication, oauth2::OAuth2Authentication}, consumer::data::MessageData, proto::MessageIdData, Authentication, Consumer, DeserializeMessage, Payload, Pulsar, SubType, TokioExecutor
 };
 
 #[derive(Serialize, Deserialize)]
@@ -94,6 +94,19 @@ async fn main() -> Result<(), pulsar::Error> {
     log::info!("xxxzgc consumer_id: {:?}", ids);
     let last_msg_id = consumer.get_last_message_id().await?;
     log::info!("xxxzgc last_msg_id: {:?}", last_msg_id);
+
+    let earliest_id_data = MessageIdData {
+        ledger_id: u64::MAX,
+        entry_id: u64::MAX,
+        ..Default::default()
+    };
+    consumer.seek(Some(consumer.topics()), Some(earliest_id_data), None, pulsar).await?;
+    // let latest_id_data = MessageIdData {
+    //     ledger_id: u64::MAX,
+    //     entry_id: u64::MAX,
+    //     ..Default::default()
+    // };
+    // consumer.seek(Some(consumer.topics()), Some(latest_id_data), None, pulsar).await?;
 
     let mut counter = 0usize;
     while let Some(msg) = consumer.try_next().await? {
