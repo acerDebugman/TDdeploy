@@ -32,14 +32,18 @@ async fn main() -> Result<(), pulsar::Error> {
     //     .ok()
     //     .unwrap_or_else(|| "non-persistent://public/default/test".to_string());
     // 对于 non-partitioned topic，直接指定 topic 即可，使用逻辑 topic
+    /*
     let topic = env::var("PULSAR_TOPIC")
         .ok()
         .unwrap_or_else(|| "persistent://public/default/pt-zgc".to_string());
+    */
     // 对于 partitioned topic，需要指定具体的 partition; 等价于用 topic 来代表 12 个 partition 了，也是合理的设计
     // 这样，consumer 就可以消费 pt-zgc 这个 topic 下的所有消息了
+    
     let topic = env::var("PULSAR_TOPIC")
         .ok()
         .unwrap_or_else(|| "persistent://public/default/pt-zgc-partition-1".to_string());
+    
     // let topic = env::var("PULSAR_TOPIC")
     //     .ok()
     //     .unwrap_or_else(|| "persistent://public/default/pt-zgc-partition-[0-2]".to_string());
@@ -73,9 +77,9 @@ async fn main() -> Result<(), pulsar::Error> {
 
     let mut consumer: Consumer<Vec<u8>, _> = pulsar
         .consumer()
-        // .with_topic(topic)
+        .with_topic(topic)
         // .with_topics(vec![topic_zgc])
-        .with_topics(vec![topic])
+        //.with_topics(vec![topic])
         // .with_topic_regex(regex::Regex::new(topic.as_str()).unwrap())
         .with_consumer_name("test_consumer9")
         // .with_subscription_type(SubType::Exclusive)
@@ -96,20 +100,25 @@ async fn main() -> Result<(), pulsar::Error> {
     let last_msg_id = consumer.get_last_message_id().await?;
     log::info!("xxxzgc last_msg_id: {:?}", last_msg_id);
 
-    // let earliest_id_data = MessageIdData {
-    //     ledger_id: u64::MAX,
-    //     entry_id: u64::MAX,
-    //     ..Default::default()
-    // };
-    // consumer.seek(Some(consumer.topics()), Some(earliest_id_data.clone()), None, pulsar).await?;
-    // log::info!("seek to earliest_id_data: {:?}", earliest_id_data);
-    // let latest_id_data = MessageIdData {
-    //     ledger_id: u64::MAX,
-    //     entry_id: u64::MAX,
-    //     ..Default::default()
-    // };
-    // consumer.seek(Some(consumer.topics()), Some(latest_id_data), None, pulsar).await?;
-    // log::info!("seek to latest_id_data: {:?}", latest_id_data);
+    /*
+    let earliest_id_data = MessageIdData {
+        ledger_id: 0,
+        entry_id: 0,
+        ..Default::default()
+    };
+    consumer.seek(Some(consumer.topics()), Some(earliest_id_data.clone()), None, pulsar).await?;
+    log::info!("seek to earliest_id_data: {:?}", earliest_id_data);
+    */
+
+    let latest_id_data = MessageIdData {
+        ledger_id: u64::MAX,
+        entry_id: u64::MAX,
+        ..Default::default()
+    };
+    // let latest_id_data  = last_msg_id;
+    consumer.seek(Some(consumer.topics()), Some(latest_id_data.clone()), None, pulsar).await?;
+    log::info!("seek to latest_id_data: {:?}", latest_id_data);
+    /*
     let msg_id_data = MessageIdData {
         ledger_id: 5,
         entry_id: 2,
@@ -117,13 +126,13 @@ async fn main() -> Result<(), pulsar::Error> {
     };
     consumer.seek(Some(consumer.topics()), Some(msg_id_data.clone()), None, pulsar).await?;
     log::info!("seek to msg_id_data: {:?}", msg_id_data);
+    */
 
     let mut counter = 0usize;
     while let Some(msg) = consumer.try_next().await? {
     // while let Some(msg) = consumer.next().await {
         log::info!("metadata: {:?}", msg.metadata());
         log::info!("id: {:?}", msg.message_id());
-        tokio::time::sleep(std::time::Duration::from_secs(3)).await;
         // panic!("test no ack");
         // consumer.ack(&msg).await?;
         consumer.ack(&msg).await?;
@@ -133,6 +142,7 @@ async fn main() -> Result<(), pulsar::Error> {
         counter += 1;
         log::info!("got {} messages: {:?}", counter, rs_json);
 
+        tokio::time::sleep(std::time::Duration::from_secs(3)).await;
         if counter > 100 {
             consumer.close().await.expect("Unable to close consumer");
             break;
