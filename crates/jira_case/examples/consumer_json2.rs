@@ -128,7 +128,6 @@ async fn main() -> Result<(), pulsar::Error> {
     // while let Some(msg) = consumer.next().await {
         log::info!("metadata: {:?}", msg.metadata());
         log::info!("id: {:?}", msg.message_id());
-        tokio::time::sleep(std::time::Duration::from_secs(3)).await;
         // panic!("test no ack");
         // consumer.ack(&msg).await?;
         consumer.ack(&msg).await?;
@@ -138,6 +137,7 @@ async fn main() -> Result<(), pulsar::Error> {
         counter += 1;
         log::info!("got {} messages: {:?}", counter, rs_json);
 
+        tokio::time::sleep(std::time::Duration::from_secs(3)).await;
         if counter > 100 {
             consumer.close().await.expect("Unable to close consumer");
             break;
