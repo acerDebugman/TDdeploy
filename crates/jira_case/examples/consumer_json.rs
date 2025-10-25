@@ -1,6 +1,8 @@
 #[macro_use]
 extern crate serde;
 use std::env;
+use pulsar::consumer::InitialPosition;
+use pulsar::ConsumerOptions;
 
 use futures::{StreamExt, TryStreamExt};
 use pulsar::{
@@ -40,9 +42,11 @@ async fn main() -> Result<(), pulsar::Error> {
     // 对于 partitioned topic，需要指定具体的 partition; 等价于用 topic 来代表 12 个 partition 了，也是合理的设计
     // 这样，consumer 就可以消费 pt-zgc 这个 topic 下的所有消息了
     
+    
     let topic = env::var("PULSAR_TOPIC")
         .ok()
         .unwrap_or_else(|| "persistent://public/default/pt-zgc-partition-1".to_string());
+    
     
     // let topic = env::var("PULSAR_TOPIC")
     //     .ok()
@@ -88,6 +92,10 @@ async fn main() -> Result<(), pulsar::Error> {
         // .with_subscription_type(SubType::Failover)
         .with_subscription("test_subscription")
         // .with_subscription("test_subscription2")
+        .with_options(ConsumerOptions {
+            initial_position: InitialPosition::Latest,
+            ..Default::default()
+        })
         .build()
         .await?;
 
@@ -110,6 +118,7 @@ async fn main() -> Result<(), pulsar::Error> {
     log::info!("seek to earliest_id_data: {:?}", earliest_id_data);
     */
 
+    
     let latest_id_data = MessageIdData {
         ledger_id: u64::MAX,
         entry_id: u64::MAX,
@@ -118,15 +127,18 @@ async fn main() -> Result<(), pulsar::Error> {
     // let latest_id_data  = last_msg_id;
     consumer.seek(Some(consumer.topics()), Some(latest_id_data.clone()), None, pulsar).await?;
     log::info!("seek to latest_id_data: {:?}", latest_id_data);
+    
     /*
     let msg_id_data = MessageIdData {
-        ledger_id: 5,
-        entry_id: 2,
+        ledger_id: 94,
+        entry_id: 5,
         ..Default::default()
     };
     consumer.seek(Some(consumer.topics()), Some(msg_id_data.clone()), None, pulsar).await?;
     log::info!("seek to msg_id_data: {:?}", msg_id_data);
     */
+    return Ok(());
+    
 
     let mut counter = 0usize;
     while let Some(msg) = consumer.try_next().await? {
