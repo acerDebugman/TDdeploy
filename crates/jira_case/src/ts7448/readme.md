@@ -508,6 +508,40 @@ select `limits` from information_schema.ins_grants_full where grant_name='pulsar
 select `limits` from information_schema.ins_grants_full where grant_name='kafka';
 ```
 
+### 现有todo
+
+20251025
+
+1. 少量数据滞留问题, 少量数据会滞留，不会发送出去
+2. breakpoint 如何做？
+3. metrics 如何做？(done)
+4. 后续是否需要需要改为 shared 模式？
+5. 测试用例 **
+6. jwt_token, basic_auth, mtls 测试 **
+7. 任务列表页面 list 上，似乎不可以选择任务 **
+
+
+
+pulsar-rs bug:
+
+1. exclude 模式下，seek 会死循环
+2. seek 使用 u64::MAX 不能推到最新的 data record
+
+其他：
+
+1. 确认 pular-rs 还有其他的方式获取当前 topic 的最新的 ledger_id 和 entry_id 吗
+2. pulsar-rs 研究下代码和设计
+
+
+
+## 测试数据
+
+```
+{"ts":1761320604889,"id":0,"v_str":"255044462D312E330D0A","groupid":0,"location":"BeiJing"} {"ts":1761320605896,"id":1,"v_str":"255044462D312E330D0A","groupid":1,"location":"BeiJing"} {"ts":1761320606911,"id":2,"v_str":"255044462D312E330D0A","groupid":2,"location":"BeiJing"} {"ts":1761320607924,"id":0,"v_str":"255044462D312E330D0A","groupid":0,"location":"BeiJing"} {"ts":1761320608935,"id":1,"v_str":"255044462D312E330D0A","groupid":1,"location":"BeiJing"}
+```
+
+
+
 ## 问题
 
 那么为什么 pulsar 的 java/c++ 客户端都会要求提供 ca.cert.pem 文件？为什么 pulsar-rs 里不用？
