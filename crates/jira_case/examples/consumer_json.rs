@@ -124,8 +124,8 @@ async fn main() -> Result<(), pulsar::Error> {
         ..Default::default()
     };
     // let latest_id_data  = last_msg_id;
-    consumer.seek(Some(consumer.topics()), Some(latest_id_data.clone()), None, pulsar).await?;
-    log::info!("seek to latest_id_data: {:?}", latest_id_data);
+    //consumer.seek(Some(consumer.topics()), Some(latest_id_data.clone()), None, pulsar).await?;
+    //log::info!("seek to latest_id_data: {:?}", latest_id_data);
 
     /*
     let msg_id_data = MessageIdData {
@@ -136,8 +136,8 @@ async fn main() -> Result<(), pulsar::Error> {
     consumer.seek(Some(consumer.topics()), Some(msg_id_data.clone()), None, pulsar).await?;
     log::info!("seek to msg_id_data: {:?}", msg_id_data);
     */
-    consumer.unsubscribe().await?;
-    return Ok(());
+    //consumer.unsubscribe().await?;
+    //return Ok(());
 
 
     let mut counter = 0usize;
@@ -155,8 +155,10 @@ async fn main() -> Result<(), pulsar::Error> {
         log::info!("got {} messages: {:?}", counter, rs_json);
 
         tokio::time::sleep(std::time::Duration::from_secs(3)).await;
-        if counter > 100 {
+        if counter > 3 {
+            consumer.unsubscribe().await?;
             consumer.close().await.expect("Unable to close consumer");
+            //return Ok(());
             break;
         }
     }
