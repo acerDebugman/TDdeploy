@@ -63,7 +63,7 @@ async fn main() -> Result<(), pulsar::Error> {
     let mut producer = pulsar
         .producer()
         .with_topic(topic)
-        .with_name("bytes_producer")
+        .with_name("loop_producer")
         // .with_options(producer::ProducerOptions {
         //     schema: Some(proto::Schema {
         //         // r#type: proto::schema::Type::String as i32,

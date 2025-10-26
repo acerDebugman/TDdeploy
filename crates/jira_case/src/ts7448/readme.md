@@ -533,6 +533,97 @@ pulsar-rs bug:
 2. pulsar-rs 研究下代码和设计
 
 
+## 开启认证
+
+broker 的 broker.conf
+
+```
+
+# --- 启用 Basic 认证 ---
+authenticationEnabled=true
+authenticationProviders=org.apache.pulsar.broker.authentication.AuthenticationProviderBasic
+basicAuthConf=file:///pulsar/basic-auth/.htpasswd
+
+# --- Broker 之间互调用也走 Basic ---
+brokerClientAuthenticationPlugin=org.apache.pulsar.client.impl.auth.AuthenticationBasic
+brokerClientAuthenticationParameters={"userId":"root","password":"taosdata"}
+
+# --- 如果后面加 Proxy，同样配 ---
+forwardAuthorizationCredentials=true
+```
+
+
+```
+
+mkdir basic-auth
+apt-get install -y apache2-utils
+# 新建用户 superuser/admin
+htpasswd -cB ./basic-auth/.htpasswd root
+# 再追加一个客户端账号
+htpasswd -B ./basic-auth/.htpasswd taosdata
+
+```
+
+
+将 broker.conf 拷贝出来修改：
+
+```
+ docker cp broker:/pulsar/conf/broker.conf .
+```
+
+
+docker-compose.yaml 里的配置：
+
+```
+  # Start broker
+  broker:
+    image: apachepulsar/pulsar:latest
+    container_name: broker
+    hostname: broker
+    restart: on-failure
+    networks:
+      - pulsar
+    environment:
+      - metadataStoreUrl=zk:zookeeper:2181
+      - zookeeperServers=zookeeper:2181
+      - clusterName=cluster-a
+      - managedLedgerDefaultEnsembleSize=1
+      - managedLedgerDefaultWriteQuorum=1
+      - managedLedgerDefaultAckQuorum=1
+      - advertisedAddress=broker
+      - advertisedListeners=external:pulsar://127.0.0.1:6650
+      - PULSAR_MEM=-Xms512m -Xmx512m -XX:MaxDirectMemorySize=256m
+    volumes:
+      - /root/zgc/dev/dev_setup/TDdeploy/crates/jira_case/src/ts7448/basic-auth:/pulsar/basic-auth
+      - /root/zgc/dev/dev_setup/TDdeploy/crates/jira_case/src/ts7448/basic-auth/broker.conf:/pulsar/conf/broker.conf
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+      bookie:
+        condition: service_started
+    ports:
+      - "6650:6650"
+      - "8080:8080"
+    command: bash -c "bin/apply-config-from-env.py conf/broker.conf && exec bin/pulsar broker"
+
+```
+
+
+测试：
+
+vi conf/client.conf
+
+```
+authPlugin=org.apache.pulsar.client.impl.auth.AuthenticationBasic
+authParams={"userId":"superuser","password":"admin"}
+```
+
+
+
+```
+pulsar-admin --admin-url http://localhost:8080   tenants list
+```
+
 
 ## 测试数据
 
