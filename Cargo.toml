@@ -111,7 +111,8 @@ sqlx-postgres = { version = "0.8", features = [
 
 sled = "0.34.7"
 
-pulsar = "6.4.1"
+#pulsar = "6.4.1"
+pulsar = { path = "external/pulsar-rs" }
 env_logger = "0.11.8"
 reqwest = "0.12.24"
 

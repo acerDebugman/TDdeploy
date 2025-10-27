@@ -35,7 +35,7 @@ async fn main() -> Result<(), pulsar::Error> {
     //     .unwrap_or_else(|| "non-persistent://public/default/test".to_string());
     let topic = env::var("PULSAR_TOPIC")
         .ok()
-        .unwrap_or_else(|| "persistent://public/default/abc123".to_string());
+        .unwrap_or_else(|| "persistent://public/default/pt-zgc".to_string());
 
 
     let mut builder = Pulsar::builder(addr, TokioExecutor);
@@ -63,23 +63,35 @@ async fn main() -> Result<(), pulsar::Error> {
     let mut producer = pulsar
         .producer()
         .with_topic(topic)
-        .with_name("my producer")
-        .with_options(producer::ProducerOptions {
-            schema: Some(proto::Schema {
-                r#type: proto::schema::Type::String as i32,
-                ..Default::default()
-            }),
-            ..Default::default()
-        })
+        .with_name("loop_producer")
+        // .with_options(producer::ProducerOptions {
+        //     schema: Some(proto::Schema {
+        //         // r#type: proto::schema::Type::String as i32,
+        //         r#type: proto::schema::Type::Binary as i32,
+        //         ..Default::default()
+        //     }),
+        //     ..Default::default()
+        // })
         .build()
         .await?;
 
     let mut counter = 0usize;
     loop {
+
+        let item = format!("{}", "255044462D312E330D0A");
+        let message = serde_json::json!({
+            "ts": chrono::Utc::now().timestamp_millis(),
+            "id": counter % 3,
+            // "voltage": 0.7 + i as f32,
+            // "v_blob": item.as_bytes(),
+            "v_str": item,
+            "groupid": counter % 3,
+            "location": "BeiJing"
+        })
+        .to_string();
+
         producer
-            .send_non_blocking(TestData {
-                data: "data".to_string(),
-            })
+            .send_non_blocking(message.as_bytes())
             .await?
             .await
             .unwrap();
@@ -88,7 +100,7 @@ async fn main() -> Result<(), pulsar::Error> {
         log::info!("{counter} messages");
         tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
 
-        if counter >= 5 {
+        if counter >= 1000000000 {
             producer.close().await.expect("Unable to close connection");
             break;
         }

@@ -1,11 +1,13 @@
 #[macro_use]
+extern crate serde;
 use std::env;
+use pulsar::consumer::InitialPosition;
+use pulsar::ConsumerOptions;
 
 use futures::{StreamExt, TryStreamExt};
 use pulsar::{
-    authentication::{basic::BasicAuthentication, oauth2::OAuth2Authentication}, consumer::data::MessageData, Authentication, Consumer, DeserializeMessage, Payload, Pulsar, SubType, TokioExecutor
+    authentication::{basic::BasicAuthentication, oauth2::OAuth2Authentication}, consumer::data::MessageData, proto::MessageIdData, Authentication, Consumer, DeserializeMessage, Payload, Pulsar, SubType, TokioExecutor
 };
-use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 struct TestData {
@@ -21,24 +23,31 @@ impl DeserializeMessage for TestData {
 }
 
 // 单 topic 测试 last_message_id
-pub async fn consumer_main() -> Result<(), pulsar::Error> {
+#[tokio::main]
+async fn main() -> Result<(), pulsar::Error> {
     env_logger::init();
 
     let addr = env::var("PULSAR_ADDRESS")
         .ok()
-        .unwrap_or_else(|| "pulsar://127.0.0.1:6650".to_string());
+        .unwrap_or_else(|| "pulsar://192.168.2.131:6650".to_string());
     // let topic = env::var("PULSAR_TOPIC")
     //     .ok()
     //     .unwrap_or_else(|| "non-persistent://public/default/test".to_string());
     // 对于 non-partitioned topic，直接指定 topic 即可，使用逻辑 topic
+    /*
     let topic = env::var("PULSAR_TOPIC")
         .ok()
         .unwrap_or_else(|| "persistent://public/default/pt-zgc".to_string());
+    */
     // 对于 partitioned topic，需要指定具体的 partition; 等价于用 topic 来代表 12 个 partition 了，也是合理的设计
     // 这样，consumer 就可以消费 pt-zgc 这个 topic 下的所有消息了
+
+
     let topic = env::var("PULSAR_TOPIC")
         .ok()
-        .unwrap_or_else(|| "persistent://public/default/pt-zgc-partition-0".to_string());
+        .unwrap_or_else(|| "persistent://public/default/pt-zgc-partition-1".to_string());
+
+
     // let topic = env::var("PULSAR_TOPIC")
     //     .ok()
     //     .unwrap_or_else(|| "persistent://public/default/pt-zgc-partition-[0-2]".to_string());
@@ -70,18 +79,23 @@ pub async fn consumer_main() -> Result<(), pulsar::Error> {
 
     let pulsar: Pulsar<_> = builder.build().await?;
 
-    let mut consumer: Consumer<TestData, _> = pulsar
+    let mut consumer: Consumer<Vec<u8>, _> = pulsar
         .consumer()
-        // .with_topic(topic)
+        .with_topic(topic)
         // .with_topics(vec![topic_zgc])
-        // .with_topics(vec![topic])
-        .with_topic_regex(regex::Regex::new(topic.as_str()).unwrap())
-        .with_consumer_name("test_consumer8")
-        .with_subscription_type(SubType::Exclusive)
+        //.with_topics(vec![topic])
+        // .with_topic_regex(regex::Regex::new(topic.as_str()).unwrap())
+        .with_consumer_name("test_consumer9")
+        // .with_subscription_type(SubType::Exclusive)
+        .with_subscription_type(SubType::Failover)
         // .with_subscription_type(SubType::Shared)
         // .with_subscription_type(SubType::Failover)
         .with_subscription("test_subscription")
         // .with_subscription("test_subscription2")
+        .with_options(ConsumerOptions {
+            initial_position: InitialPosition::Latest,
+            ..Default::default()
+        })
         .build()
         .await?;
 
@@ -94,31 +108,57 @@ pub async fn consumer_main() -> Result<(), pulsar::Error> {
     let last_msg_id = consumer.get_last_message_id().await?;
     log::info!("xxxzgc last_msg_id: {:?}", last_msg_id);
 
+    /*
+    let earliest_id_data = MessageIdData {
+        ledger_id: 0,
+        entry_id: 0,
+        ..Default::default()
+    };
+    consumer.seek(Some(consumer.topics()), Some(earliest_id_data.clone()), None, pulsar).await?;
+    log::info!("seek to earliest_id_data: {:?}", earliest_id_data);
+    */
+
+    let latest_id_data = MessageIdData {
+        ledger_id: u64::MAX,
+        entry_id: u64::MAX,
+        ..Default::default()
+    };
+    // let latest_id_data  = last_msg_id;
+    //consumer.seek(Some(consumer.topics()), Some(latest_id_data.clone()), None, pulsar).await?;
+    //log::info!("seek to latest_id_data: {:?}", latest_id_data);
+
+    /*
+    let msg_id_data = MessageIdData {
+        ledger_id: 94,
+        entry_id: 5,
+        ..Default::default()
+    };
+    consumer.seek(Some(consumer.topics()), Some(msg_id_data.clone()), None, pulsar).await?;
+    log::info!("seek to msg_id_data: {:?}", msg_id_data);
+    */
+    //consumer.unsubscribe().await?;
+    //return Ok(());
+
+
     let mut counter = 0usize;
     while let Some(msg) = consumer.try_next().await? {
     // while let Some(msg) = consumer.next().await {
         log::info!("metadata: {:?}", msg.metadata());
         log::info!("id: {:?}", msg.message_id());
-        tokio::time::sleep(std::time::Duration::from_secs(3)).await;
         // panic!("test no ack");
+        // consumer.ack(&msg).await?;
         consumer.ack(&msg).await?;
-        let data = match msg.deserialize() {
-            Ok(data) => data,
-            Err(e) => {
-                log::error!("could not deserialize message: {:?}", e);
-                break;
-            }
-        };
+        let data = msg.deserialize();
 
-        if data.data.as_str() != "data" {
-            log::error!("Unexpected payload: {}", &data.data);
-            break;
-        }
+        let rs_json = String::from_utf8_lossy(&data);
         counter += 1;
-        log::info!("got {} messages", counter);
+        log::info!("got {} messages: {:?}", counter, rs_json);
 
-        if counter > 100 {
+        tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+        if counter > 3 {
+            consumer.unsubscribe().await?;
             consumer.close().await.expect("Unable to close consumer");
+            //return Ok(());
             break;
         }
     }

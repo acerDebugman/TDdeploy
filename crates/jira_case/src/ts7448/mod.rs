@@ -1,10 +1,5 @@
 pub mod producer;
 pub mod consumer;
-pub mod consumer2;
-pub mod consumer3;
-pub mod consumer4;
-pub mod consumer8;
-pub mod consumer9;
 pub mod batching;
 pub mod reader;
 pub mod round_trip;
@@ -14,7 +9,7 @@ pub async fn ts7448_main() -> anyhow::Result<()> {
     // test_futures_ordered().await?;
     // test_futures_unordered().await?;
     // consumer::consumer_main().await?;
-    consumer9::consumer_main().await?;
+    consumer::consumer_main().await?;
 
     Ok(())
 }

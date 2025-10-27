@@ -487,7 +487,22 @@ let last_msg_id = consumer.get_last_message_id().await?;
 
 ```
 cargo test --package source-pulsar --lib -- config::connect::tests::test_parse_broker_url --exact --show-output --nocapture
+
 ```
+
+
+
+### 命令行执行 pulsar 导入 ：
+
+
+```
+
+./taosx run -vv -f "pulsar://192.168.2.131:6650?batch_size=1000&busy_threshold=100%&char_encoding=UTF_8&consumer_name=c1&initial_position=Earliest&subscription=zgc&timeout=0ms&topics=persistent://public/default/pt-zgc" -t "taos+http://root:taosdata@192.168.2.131:6041/zgc" -p "@./pulsar-parser.json"
+
+```
+
+
+
 
 ## 依赖组件
 
@@ -515,23 +530,21 @@ select `limits` from information_schema.ins_grants_full where grant_name='kafka'
 1. 少量数据滞留问题, 少量数据会滞留，不会发送出去
 2. breakpoint 如何做？
 3. metrics 如何做？(done)
+   1. 添加新的 metrics
 4. 后续是否需要需要改为 shared 模式？
 5. 测试用例 **
 6. jwt_token, basic_auth, mtls 测试 **
 7. 任务列表页面 list 上，似乎不可以选择任务 **
 
-
-
 pulsar-rs bug:
 
 1. exclude 模式下，seek 会死循环
-2. seek 使用 u64::MAX 不能推到最新的 data record
+2. seek 使用 u64::MAX 不能推到最新的 data record, 那么用 seek，就几乎只能 seek 历史的信息了
 
 其他：
 
 1. 确认 pular-rs 还有其他的方式获取当前 topic 的最新的 ledger_id 和 entry_id 吗
 2. pulsar-rs 研究下代码和设计
-
 
 ## 开启认证
 
@@ -552,7 +565,6 @@ brokerClientAuthenticationParameters={"userId":"root","password":"taosdata"}
 forwardAuthorizationCredentials=true
 ```
 
-
 ```
 
 mkdir basic-auth
@@ -564,13 +576,11 @@ htpasswd -B ./basic-auth/.htpasswd taosdata
 
 ```
 
-
 将 broker.conf 拷贝出来修改：
 
 ```
  docker cp broker:/pulsar/conf/broker.conf .
 ```
-
 
 docker-compose.yaml 里的配置：
 
@@ -608,7 +618,6 @@ docker-compose.yaml 里的配置：
 
 ```
 
-
 测试：
 
 vi conf/client.conf
@@ -618,20 +627,15 @@ authPlugin=org.apache.pulsar.client.impl.auth.AuthenticationBasic
 authParams={"userId":"superuser","password":"admin"}
 ```
 
-
-
 ```
 pulsar-admin --admin-url http://localhost:8080   tenants list
 ```
-
 
 ## 测试数据
 
 ```
 {"ts":1761320604889,"id":0,"v_str":"255044462D312E330D0A","groupid":0,"location":"BeiJing"} {"ts":1761320605896,"id":1,"v_str":"255044462D312E330D0A","groupid":1,"location":"BeiJing"} {"ts":1761320606911,"id":2,"v_str":"255044462D312E330D0A","groupid":2,"location":"BeiJing"} {"ts":1761320607924,"id":0,"v_str":"255044462D312E330D0A","groupid":0,"location":"BeiJing"} {"ts":1761320608935,"id":1,"v_str":"255044462D312E330D0A","groupid":1,"location":"BeiJing"}
 ```
-
-
 
 ## 问题
 

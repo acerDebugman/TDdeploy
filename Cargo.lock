@@ -690,6 +690,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "assert_matches"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9b34d609dfbaf33d6889b2b7106d3ca345eacad44200913df5ba02bfd31d2ba9"
+
+[[package]]
 name = "async-attributes"
 version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2793,6 +2799,17 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.106",
+]
+
+[[package]]
+name = "futures-rustls"
+version = "0.26.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a8f2f12607f92c69b12ed746fabf9ca4f5c482cba46679c1a75b874ed7c26adb"
+dependencies = [
+ "futures-io",
+ "rustls",
+ "rustls-pki-types",
 ]
 
 [[package]]
@@ -5226,6 +5243,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "protobuf-src"
+version = "2.1.1+27.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6217c3504da19b85a3a4b2e9a5183d635822d83507ba0986624b5c05b83bfc40"
+dependencies = [
+ "cmake",
+]
+
+[[package]]
 name = "ptr_meta"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5248,9 +5274,8 @@ dependencies = [
 [[package]]
 name = "pulsar"
 version = "6.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "27872258cabef39eeeff1086f3a59ada760278e423be9ecf19b281a5fcd8f26f"
 dependencies = [
+ "assert_matches",
  "async-channel 2.5.0",
  "async-native-tls 0.5.0",
  "async-std",
@@ -5260,8 +5285,10 @@ dependencies = [
  "chrono",
  "crc",
  "data-url",
+ "env_logger 0.11.8",
  "flate2",
  "futures",
+ "futures-rustls",
  "log",
  "lz4",
  "native-tls",
@@ -5272,16 +5299,22 @@ dependencies = [
  "prost 0.13.5",
  "prost-build",
  "prost-derive 0.13.5",
+ "protobuf-src",
  "rand 0.8.5",
  "regex",
+ "reqwest",
+ "rustls",
  "serde",
  "serde_json",
  "snap",
  "tokio",
  "tokio-native-tls",
+ "tokio-rustls",
  "tokio-util",
+ "tracing",
  "url",
  "uuid",
+ "webpki-roots 1.0.2",
  "zstd",
 ]
 

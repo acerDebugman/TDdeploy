@@ -1,0 +1,78 @@
+{
+    "global": {
+      "cache": {
+        "max_size": "1GB",
+        "location": "",
+        "on_fail": "skip"
+      },
+      "archive": {
+        "keep_days": "30d",
+        "max_size": "1GB",
+        "location": "",
+        "on_fail": "rotate"
+      },
+      "database_connection_error": "cache",
+      "database_not_exist": "break",
+      "table_not_exist": "retry",
+      "primary_timestamp_overflow": "archive",
+      "primary_timestamp_null": "archive",
+      "primary_key_null": "archive",
+      "table_name_length_overflow": "archive",
+      "table_name_contains_illegal_char": {
+        "replace_to": ""
+      },
+      "variable_not_exist_in_table_name_template": {
+        "replace_to": ""
+      },
+      "field_name_not_found": "add_field",
+      "field_name_length_overflow": "archive",
+      "field_length_extend": true,
+      "field_length_overflow": "archive",
+      "ingesting_error": "archive",
+      "connection_timeout_in_second": "30s"
+    },
+    "parse": {
+      "value": {
+        "json": ""
+      }
+    },
+    "model": {
+      "name": "t${id}",
+      "using": "meters",
+      "tags": [
+        "groupid",
+        "location"
+      ],
+      "columns": [
+        "ts",
+        "id",
+        "v_str"
+      ]
+    },
+    "mutate": [
+      {
+        "map": {
+          "ts": {
+            "cast": "ts",
+            "as": "TIMESTAMP(ms)"
+          },
+          "id": {
+            "cast": "id",
+            "as": "BIGINT"
+          },
+          "v_str": {
+            "cast": "v_str",
+            "as": "VARCHAR"
+          },
+          "groupid": {
+            "cast": "groupid",
+            "as": "BIGINT"
+          },
+          "location": {
+            "cast": "location",
+            "as": "VARCHAR"
+          }
+        }
+      }
+    ]
+  }
