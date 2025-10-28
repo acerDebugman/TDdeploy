@@ -490,14 +490,11 @@ cargo test --package source-pulsar --lib -- config::connect::tests::test_parse_b
 
 ```
 
-
-
 ### 命令行执行 pulsar 导入 ：
 
-
 ```
+taosx run -f "pulsar://192.168.2.131:6650?batch_size=1000&busy_threshold=100%&char_encoding=UTF_8&consumer_name=c1&initial_position=Earliest&subscription=zgc&timeout=0ms&topics=persistent://public/default/pt-zgc" -t "taos+http://root:taosdata@192.168.2.131:6041/zgc" -p "@./docs/taosx/pulsar-parser.json"
 
-./taosx run -vv -f "pulsar://192.168.2.131:6650?batch_size=1000&busy_threshold=100%&char_encoding=UTF_8&consumer_name=c1&initial_position=Earliest&subscription=zgc&timeout=0ms&topics=persistent://public/default/pt-zgc" -t "taos+http://root:taosdata@192.168.2.131:6041/zgc" -p "@./pulsar-parser.json"
 
 ```
 
@@ -527,14 +524,24 @@ select `limits` from information_schema.ins_grants_full where grant_name='kafka'
 
 20251025
 
-1. 少量数据滞留问题, 少量数据会滞留，不会发送出去
-2. breakpoint 如何做？
+1. 少量数据滞留问题, 少量数据会滞留，不会发送出去，现象：一条数据无法 发送出去, batch 发送的 timeout 问题 （done）
+2. breakpoint 如何做？(done)
+   1. 目前依赖 pulsar 的 cursor, 不手动做了；
 3. metrics 如何做？(done)
-   1. 添加新的 metrics
+   1. 添加新的 metrics (done)
 4. 后续是否需要需要改为 shared 模式？
 5. 测试用例 **
-6. jwt_token, basic_auth, mtls 测试 **
-7. 任务列表页面 list 上，似乎不可以选择任务 **
+6. jwt_token, basic_auth, mtls 测试
+7. 任务列表页面 list 上，似乎不可以选择任务 (done)
+   1. 可以选择，开了开发工具导致 (done)
+8. 命令行 (done)
+9. agent 测试 （done）
+10. 性能测试
+11. 涂鸦的 文档查看, 发现内部有加密工具，可能需要进行 二次 解密的开发
+12. broker 多地址确认，只支持单地址 (done)
+13. 删除掉 xxxzgc 注释 **
+14. broker_url 点击编辑进入后 broker_url 为空
+15. explorer/.env 文件恢复 **
 
 pulsar-rs bug:
 

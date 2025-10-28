@@ -12,7 +12,7 @@
                     "on_fail": "rotate"
             },
             "database_connection_error": "cache",
-            "database_not_exist": "archive",
+            "database_not_exist": "break",
             "table_not_exist": "retry",
             "primary_timestamp_overflow": "archive",
             "primary_timestamp_null": "archive",
@@ -32,40 +32,52 @@
             "connection_timeout_in_second": "30s"
     },
     "parse": {
-            "value": {
-                    "json": ""
+            "id": {
+                    "as": "int"
+            },
+            "voltage": {
+                    "as": "int"
+            },
+            "v_blob": {
+                    "as": "blob"
+            },
+            "groupid": {
+                    "as": "int"
+            },
+            "location": {
+                    "as": "nchar(50)"
+            },
+            "time": {
+                    "as": "nchar(50)"
             }
     },
     "model": {
-            "name": "t_${id}",
+            "name": "t${groupid}",
             "using": "meters",
-            "tags": [
-                    "groupid",
-                    "location"
-            ],
-            "columns": [
-                    "ts",
-                    "id",
-                    "voltage"
-            ]
+            "tags": ["groupid", "location"],
+            "columns": ["ts", "id", "voltage", "v_blob"]
     },
     "mutate": [{
             "map": {
                     "ts": {
-                            "cast": "ts",
+                            "cast": "time",
                             "as": "TIMESTAMP(ms)"
                     },
                     "id": {
                             "cast": "id",
-                            "as": "BIGINT"
+                            "as": "INT"
                     },
                     "voltage": {
                             "cast": "voltage",
-                            "as": "DOUBLE"
+                            "as": "INT"
+                    },
+                    "v_blob": {
+                            "cast": "v_blob",
+                            "as": "blob"
                     },
                     "groupid": {
                             "cast": "groupid",
-                            "as": "BIGINT"
+                            "as": "INT"
                     },
                     "location": {
                             "cast": "location",
@@ -73,4 +85,4 @@
                     }
             }
     }]
-} 
+}
