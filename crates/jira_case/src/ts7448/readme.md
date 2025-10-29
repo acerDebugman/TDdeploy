@@ -498,9 +498,6 @@ taosx run -f "pulsar://192.168.2.131:6650?batch_size=1000&busy_threshold=100%&ch
 
 ```
 
-
-
-
 ## 依赖组件
 
 ```
@@ -542,6 +539,8 @@ select `limits` from information_schema.ins_grants_full where grant_name='kafka'
 13. 删除掉 xxxzgc 注释 **
 14. broker_url 点击编辑进入后 broker_url 为空
 15. explorer/.env 文件恢复 **
+16. agent 模式下的 do_put 流里也需要支持 pulsar, 但是为什么 测试 没报错?
+17. 
 
 pulsar-rs bug:
 
@@ -552,6 +551,9 @@ pulsar-rs bug:
 
 1. 确认 pular-rs 还有其他的方式获取当前 topic 的最新的 ledger_id 和 entry_id 吗
 2. pulsar-rs 研究下代码和设计
+
+
+
 
 ## 开启认证
 

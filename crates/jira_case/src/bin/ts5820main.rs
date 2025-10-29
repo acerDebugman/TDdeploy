@@ -1,4 +1,5 @@
-use jira_case::{gen_data::{td_blob_data_big, td_blob_data_small}, ts5820::{kafka::kafka_main, loop_data, subscribe, tmq::{test_poll_with_sleep, test_tmq}}, ts7433};
+use jira_case::offen::kafka::kafka_main;
+
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
