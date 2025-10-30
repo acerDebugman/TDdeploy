@@ -7378,7 +7378,6 @@ dependencies = [
  "md5 0.8.0",
  "metrics",
  "notify 8.2.0",
- "once_cell",
  "opendal",
  "openssl",
  "parking_lot 0.12.4",
