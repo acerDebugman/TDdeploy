@@ -3,13 +3,15 @@ pub mod consumer;
 pub mod batching;
 pub mod reader;
 pub mod round_trip;
+pub mod consumer_tuya;
 
 pub async fn ts7448_main() -> anyhow::Result<()> {
 
     // test_futures_ordered().await?;
     // test_futures_unordered().await?;
     // consumer::consumer_main().await?;
-    consumer::consumer_main().await?;
+    // consumer::consumer_main().await?;
+    consumer_tuya::consumer_main().await?;
 
     Ok(())
 }

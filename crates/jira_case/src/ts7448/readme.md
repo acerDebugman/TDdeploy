@@ -552,9 +552,6 @@ pulsar-rs bug:
 1. 确认 pular-rs 还有其他的方式获取当前 topic 的最新的 ledger_id 和 entry_id 吗
 2. pulsar-rs 研究下代码和设计
 
-
-
-
 ## 开启认证
 
 broker 的 broker.conf
@@ -645,6 +642,58 @@ pulsar-admin --admin-url http://localhost:8080   tenants list
 ```
 {"ts":1761320604889,"id":0,"v_str":"255044462D312E330D0A","groupid":0,"location":"BeiJing"} {"ts":1761320605896,"id":1,"v_str":"255044462D312E330D0A","groupid":1,"location":"BeiJing"} {"ts":1761320606911,"id":2,"v_str":"255044462D312E330D0A","groupid":2,"location":"BeiJing"} {"ts":1761320607924,"id":0,"v_str":"255044462D312E330D0A","groupid":0,"location":"BeiJing"} {"ts":1761320608935,"id":1,"v_str":"255044462D312E330D0A","groupid":1,"location":"BeiJing"}
 ```
+
+#### 涂鸦客户端使用
+
+进入  sdk 位置, 编写测试用例：
+
+```
+cd /home/algo/rust_space/tuya-pulsar-sdk-java
+
+# 非 pom.xml 修改的打包的执行方法：
+mvn clean package
+mvn dependency:copy-dependencies -DoutputDirectory=target/lib
+
+java -cp "open-mq-sdk/target/open-mq-sdk-1.0-SNAPSHOT.jar:open-mq-sdk/target/lib/*"  com.tuya.open.sdk.example.ConsumerExample
+
+```
+
+
+
+消息样例：
+
+```
+
+2025-10-31 06:46:04.564, INFO, com.tuya.open.sdk.example.ConsumerExample, ConsumerExample.java, main, 27, lambda$main$0 ###TUYA_PULSAR_MSG => start process message, messageId=195828067:1:-1, publishTime=1761893118723, encryptModel=aes_gcm, payload={"data":"OTNi0JBHstQL9PKzcIrWZwHilrvcOK2h79oS+by+jMbQ2LcvA65CH5LtTBt+8EpLgMerQdCWL6aSTx/DGujxxiVb0PjFzJG6SvCszC9Fm3F3hqQh+2SbHC6DnzbCRrijzITlETBZtmGcHt+RyRDpSQVYd2J8iyjcvQsz5NT7YyDVXG7pHWzWuW3goC6huzYZUPxGDxllssHwTk26OWWzuLshxzs1X9onBGMubk7NFZbpiP+reZNjreBHeLC+sjhCwsisw4ley1jYsWsL32ac/cf+8XTRa7w=","encryptVersion":"v2","protocol":4,"pv":"2.0","sign":"1e235eac0b37b6a8dc59ad7de9caf878","t":1761893118723}
+
+
+###TUYA_PULSAR_MSG => decrypt messageVO={"data":"OTNi0JBHstQL9PKzcIrWZwHilrvcOK2h79oS+by+jMbQ2LcvA65CH5LtTBt+8EpLgMerQdCWL6aSTx/DGujxxiVb0PjFzJG6SvCszC9Fm3F3hqQh+2SbHC6DnzbCRrijzITlETBZtmGcHt+RyRDpSQVYd2J8iyjcvQsz5NT7YyDVXG7pHWzWuW3goC6huzYZUPxGDxllssHwTk26OWWzuLshxzs1X9onBGMubk7NFZbpiP+reZNjreBHeLC+sjhCwsisw4ley1jYsWsL32ac/cf+8XTRa7w=","protocol":4,"pv":"2.0","sign":"1e235eac0b37b6a8dc59ad7de9caf878","t":1761893118723}
+data after decryption dataJsonStr={"dataId":"0006426EB5731E8B7DA5A0BF68071196","devId":"ebc778f3c5d9908ff6plgl","productKey":"9exm2qiar0dvqoxv","status":[{"3":"52","code":"humidity_current","t":1761893118322,"value":52}]} messageId=195828067:1:-1
+
+
+2025-10-31 06:46:04.634, INFO, com.tuya.open.sdk.example.ConsumerExample, ConsumerExample.java, main, 30, lambda$main$0 ###TUYA_PULSAR_MSG => finish process message, messageId=195828067:1:-1, publishTime=1761893118723, encryptModel=aes_gcm
+
+
+```
+
+
+
+key位置： /root/secret.key
+
+
+#### 登录测试机器
+
+使用 .pem 文件登录服务器
+
+```
+(base) algo@algo-PC:~/tmp/tuya$ chmod 400 tuya-test_key.pem 
+(base) algo@algo-PC:~/tmp/tuya$ ssh taosdata@52.249.217.13 -i tuya-test_key.pem
+
+文件传输:
+scp -i tuya-test_key.pem amazon-corretto-8-x64-linux-jdk.tar.gz  taosdata@52.249.217.13:~
+```
+
+
 
 ## 问题
 
