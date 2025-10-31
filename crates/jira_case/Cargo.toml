@@ -81,7 +81,7 @@ tracing-opentelemetry = { workspace = true }
 #taosx-core.workspace = true
 #taosx-ipc.workspace = true
 #tmp-to-local = { path = "/home/algo/rust_space/taosx/crates/tmq-to-local", package = "tmq-to-local" }
-tmp-to-local.workspace = true
+#tmp-to-local.workspace = true
 
 taos.workspace = true
 
