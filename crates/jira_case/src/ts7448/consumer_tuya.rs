@@ -5,9 +5,9 @@ use pulsar::{
 };
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 struct TestData {
-    data: String,
+    payload: String,
 }
 
 impl DeserializeMessage for TestData {
@@ -157,10 +157,12 @@ pub async fn consumer_main() -> anyhow::Result<()> {
             }
         };
 
-        if data.data.as_str() != "data" {
-            log::error!("Unexpected payload: {}", &data.data);
-            break;
-        }
+        log::info!("data: {:?}", data);
+
+        // if data.payload.as_str() != "data" {
+        //     log::error!("Unexpected payload: {}", &data.data);
+        //     break;
+        // }
         counter += 1;
         log::info!("got {} messages", counter);
 
