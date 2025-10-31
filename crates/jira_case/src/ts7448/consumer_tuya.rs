@@ -48,20 +48,20 @@ impl Evn {
 }
 
 pub fn gen_password(access_id: &str, access_key: &str) -> String {
-    use md5::{Md5, Digest};
-
     // 1. md5(accessKey)
-    let key_hash = format!("{:x}", Md5::digest(access_key.as_bytes()));
+    let key_hash = format!("{:x}", md5::compute(access_key.as_bytes()));
 
     // 2. md5(accessId + key_hash)
     let concat = format!("{}{}", access_id, key_hash);
-    let concat_hash = format!("{:x}", Md5::digest(concat.as_bytes()));
+    let concat_hash = format!("{:x}", md5::compute(concat.as_bytes()));
 
     // 3. 取 [8..24] 共 16 个字符
     let password = concat_hash
         .get(8..24)
         .expect("md5 hex always 32 chars")
         .to_string();
+
+    println!("access_id: {:?}, access_key: {:?}, password: {:?}", access_id, access_key, password);
 
     password
 }
