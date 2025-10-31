@@ -1205,7 +1205,7 @@ impl<Exe: Executor> Connection<Exe> {
         S: Send + std::marker::Unpin + 'static,
     {
         let auth_data = Self::prepare_auth_data(auth.clone()).await?;
-        println!("xxxzgc*** auth_data: {:?}", auth_data);
+        println!("xxxzgc*** auth_data: {:?}, data_str: {}", auth_data, String::from_utf8_lossy(&auth_data.as_ref().unwrap().data));
         stream
             .send({
                 let msg = messages::connect(auth_data, proxy_to_broker_url);

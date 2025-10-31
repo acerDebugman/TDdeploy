@@ -687,6 +687,9 @@ xxxzgc: command data: {"username":"49rmt4r5ukgu3rayuxcr","password":"ac591f4f689
 ```
 
 
+使用 pulsar-rs 鉴权上，还是有问题，和
+
+
 #### 登录测试机器
 
 使用 .pem 文件登录服务器
