@@ -118,6 +118,7 @@ pub async fn consumer_main() -> anyhow::Result<()> {
 
     builder = builder
         .with_allow_insecure_connection(true)
+        .with_tls_hostname_verification_enabled(false)
         .with_auth(auth);
 
     let pulsar: Pulsar<_> = builder.build().await?;
