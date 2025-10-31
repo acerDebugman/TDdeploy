@@ -865,7 +865,7 @@ impl<Exe: Executor> Connection<Exe> {
             Some(Some(addresses)) if !addresses.is_empty() => addresses,
             _ => return Err(ConnectionError::NotFound),
         };
-        println!("xxxzgc **** addr: {:?}, u: {}, tls: {}, hostname: {}", addresses, url, tls, hostname);
+        println!("xxxzgc **** addr: {:?}, u: {}, tls: {}, hostname: {:?}", addresses, url, tls, hostname);
         let id = Uuid::new_v4();
         let mut errors = vec![];
         for address in addresses {
