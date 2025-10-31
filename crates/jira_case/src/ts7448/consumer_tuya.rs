@@ -123,7 +123,7 @@ pub async fn consumer_main() -> anyhow::Result<()> {
 
     let pulsar: Pulsar<_> = builder.build().await?;
 
-    let mut consumer: Consumer<TestData, _> = pulsar
+    let mut consumer: Consumer<String, _> = pulsar
         .consumer()
         .with_topic(topic)
         .with_consumer_name("test_consumer9")
@@ -145,7 +145,7 @@ pub async fn consumer_main() -> anyhow::Result<()> {
     // while let Some(msg) = consumer.next().await {
         log::info!("metadata: {:?}", msg.metadata());
         log::info!("id: {:?}", msg.message_id());
-        tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+        // log::info!("msg: {:?}", msg);
         // panic!("test no ack");
         // consumer.ack(&msg).await?;
         consumer.ack(&msg).await?;
@@ -157,7 +157,7 @@ pub async fn consumer_main() -> anyhow::Result<()> {
             }
         };
 
-        log::info!("data: {:?}", data);
+        log::info!("msg data: {:?}", data);
 
         // if data.payload.as_str() != "data" {
         //     log::error!("Unexpected payload: {}", &data.data);
@@ -166,6 +166,7 @@ pub async fn consumer_main() -> anyhow::Result<()> {
         counter += 1;
         log::info!("got {} messages", counter);
 
+        tokio::time::sleep(std::time::Duration::from_secs(3)).await;
         if counter > 100 {
             consumer.close().await.expect("Unable to close consumer");
             break;
