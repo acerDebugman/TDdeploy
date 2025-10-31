@@ -982,7 +982,8 @@ impl<Exe: Executor> Connection<Exe> {
                         .connect(&hostname, stream)
                         .await
                         .map(|stream| tokio_util::codec::Framed::new(stream, Codec))?;
-
+                    
+                    println!("xxxzgc *** pulsar tls connect to server: {:?}, allow_insecure_connection: {:?}, tls_hostname_verification_enabled: {:?}", address, allow_insecure_connection, tls_hostname_verification_enabled);
                     Connection::connect(
                         connection_id,
                         stream,
