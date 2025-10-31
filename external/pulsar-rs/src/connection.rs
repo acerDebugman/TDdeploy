@@ -65,7 +65,7 @@ pub enum RequestKey {
 }
 
 /// Authentication parameters
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Authentication {
     /// Authentication kid. Use "token" for JWT
     pub name: String,
@@ -1205,6 +1205,7 @@ impl<Exe: Executor> Connection<Exe> {
         S: Send + std::marker::Unpin + 'static,
     {
         let auth_data = Self::prepare_auth_data(auth.clone()).await?;
+        println!("xxxzgc*** auth_data: {:?}", auth_data);
         stream
             .send({
                 let msg = messages::connect(auth_data, proxy_to_broker_url);
@@ -1212,6 +1213,7 @@ impl<Exe: Executor> Connection<Exe> {
                 msg
             })
             .await?;
+        println!("xxxzgc*** after auth_data 11");
 
         let msg = stream.next().await;
         match msg {
@@ -1228,6 +1230,7 @@ impl<Exe: Executor> Connection<Exe> {
             Some(Ok(msg)) => {
                 let cmd = msg.command.clone();
                 trace!("received connection response: {:?}", msg);
+                println!("xxxzgc ****** received connection response: {:?}", msg);
                 msg.command.connected.ok_or_else(|| {
                     ConnectionError::Unexpected(format!("Unexpected message from pulsar: {cmd:?}"))
                 })
@@ -1235,6 +1238,8 @@ impl<Exe: Executor> Connection<Exe> {
             Some(Err(e)) => Err(e),
             None => Err(ConnectionError::Disconnected),
         }?;
+
+        println!("xxxzgc*** after auth_data 222");
 
         let (mut sink, stream) = stream.split();
         let (tx, rx) = async_channel::bounded(outbound_channel_size);
