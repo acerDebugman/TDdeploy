@@ -687,6 +687,15 @@ xxxzgc: command data: {"username":"49rmt4r5ukgu3rayuxcr","password":"ac591f4f689
 ```
 
 
+pulsar-rs 的消息：
+
+```
+
+xxxzgc*** auth_data: Some(Authentication { name: "49rmt4r5ukgu3rayuxcr", data: [123, 34, 112, 97, 115, 115, 119, 111, 114, 100, 34, 58, 34, 97, 99, 53, 57, 49, 102, 52, 102, 54, 56, 57, 98, 97, 50, 102, 57, 34, 44, 34, 117, 115, 101, 114, 110, 97, 109, 101, 34, 58, 34, 52, 57, 114, 109, 116, 52, 114, 53, 117, 107, 103, 117, 51, 114, 97, 121, 117, 120, 99, 114, 34, 125] }), data_str: {"password":"ac591f4f689ba2f9","username":"49rmt4r5ukgu3rayuxcr"}
+
+```
+
+
 使用 pulsar-rs 鉴权上，还是有问题，和
 
 
