@@ -18,7 +18,8 @@ impl DeserializeMessage for TestData {
     }
 }
 
-const TUYAUS_URL: &str = "pulsar+ssl://mqe.tuyaus.com:7285/";
+// const TUYAUS_URL: &str = "pulsar+ssl://mqe.tuyaus.com:7285/";
+const TUYAUS_URL: &str = "pulsar://mqe.tuyaus.com:7285/";
 
 pub struct EnvInfo {
     pub env: String,
