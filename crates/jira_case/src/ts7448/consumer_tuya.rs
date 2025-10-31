@@ -7,7 +7,13 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 struct TestData {
-    payload: String,
+    data: String,
+    #[serde(rename="encryptVersion")]
+    encrypt_version: String,
+    protocol: u32,
+    pv: String,
+    sign: String,
+    t: u64,
 }
 
 impl DeserializeMessage for TestData {
@@ -123,7 +129,7 @@ pub async fn consumer_main() -> anyhow::Result<()> {
 
     let pulsar: Pulsar<_> = builder.build().await?;
 
-    let mut consumer: Consumer<String, _> = pulsar
+    let mut consumer: Consumer<TestData, _> = pulsar
         .consumer()
         .with_topic(topic)
         .with_consumer_name("test_consumer9")
