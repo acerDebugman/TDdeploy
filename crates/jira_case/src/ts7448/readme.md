@@ -658,8 +658,6 @@ java -cp "open-mq-sdk/target/open-mq-sdk-1.0-SNAPSHOT.jar:open-mq-sdk/target/lib
 
 ```
 
-
-
 消息样例：
 
 ```
@@ -676,9 +674,17 @@ data after decryption dataJsonStr={"dataId":"0006426EB5731E8B7DA5A0BF68071196","
 
 ```
 
-
-
 key位置： /root/secret.key
+
+
+加密的 comman data:
+
+```
+xxxzgc: command data: {"username":"49rmt4r5ukgu3rayuxcr","password":"ac591f4f689ba2f9"}
+xxxzgc: command data: {"username":"49rmt4r5ukgu3rayuxcr","password":"ac591f4f689ba2f9"}
+xxxzgc: command data: {"username":"49rmt4r5ukgu3rayuxcr","password":"ac591f4f689ba2f9"}
+
+```
 
 
 #### 登录测试机器
@@ -692,8 +698,6 @@ key位置： /root/secret.key
 文件传输:
 scp -i tuya-test_key.pem amazon-corretto-8-x64-linux-jdk.tar.gz  taosdata@52.249.217.13:~
 ```
-
-
 
 ## 问题
 

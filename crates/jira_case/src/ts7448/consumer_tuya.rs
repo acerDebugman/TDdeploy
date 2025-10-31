@@ -107,13 +107,18 @@ pub async fn consumer_main() -> anyhow::Result<()> {
     //     builder = builder.with_auth_provider(BasicAuthentication::new(&username, &password))
     // }
     // builder.with_certificate_chain(certificate_chain);
+    let data = format!("{}", serde_json::json!({
+        "username": access_id,
+        "password": gen_password(access_id, access_key)
+    }));
     let auth = Authentication {
         name: access_id.to_string(),
-        data: gen_password(access_id, access_key).into_bytes(),
+        data: data.into_bytes(),
     };
 
-    builder = builder.with_allow_insecure_connection(true)
-    .with_auth(auth);
+    builder = builder
+        .with_allow_insecure_connection(true)
+        .with_auth(auth);
 
     let pulsar: Pulsar<_> = builder.build().await?;
 
