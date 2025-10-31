@@ -78,8 +78,8 @@ tracing-opentelemetry = { workspace = true }
 
 #taosx-core = { path = "../../taosx/taosx-core" }
 #taosx-ipc = { path = "../../taosx/taosx-ipc" }
-taosx-core.workspace = true
-taosx-ipc.workspace = true
+#taosx-core.workspace = true
+#taosx-ipc.workspace = true
 
 taos.workspace = true
 

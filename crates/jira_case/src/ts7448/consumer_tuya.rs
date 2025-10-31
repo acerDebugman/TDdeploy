@@ -47,6 +47,25 @@ impl Evn {
     }
 }
 
+pub fn gen_password(access_id: &str, access_key: &str) -> String {
+    use md5::{Md5, Digest};
+
+    // 1. md5(accessKey)
+    let key_hash = format!("{:x}", Md5::digest(access_key.as_bytes()));
+
+    // 2. md5(accessId + key_hash)
+    let concat = format!("{}{}", access_id, key_hash);
+    let concat_hash = format!("{:x}", Md5::digest(concat.as_bytes()));
+
+    // 3. 取 [8..24] 共 16 个字符
+    let password = concat_hash
+        .get(8..24)
+        .expect("md5 hex always 32 chars")
+        .to_string();
+
+    password
+}
+
 // 单 topic 测试 last_message_id
 pub async fn consumer_main() -> anyhow::Result<()> {
     env_logger::init();
@@ -62,32 +81,39 @@ pub async fn consumer_main() -> anyhow::Result<()> {
     let mut builder = Pulsar::builder(addr, TokioExecutor);
 
     let content = std::fs::read_to_string("/root/secret.key")?;
-    let (username, password) = content.trim().split_once(':').unwrap();
-    unsafe {
-        env::set_var("PULSAR_BASIC_USERNAME", username);
-        env::set_var("PULSAR_BASIC_PASSWORD", password);
-    }
+    let (access_id, access_key) = content.trim().split_once(':').unwrap();
+    // unsafe {
+    //     env::set_var("PULSAR_BASIC_USERNAME", username);
+    //     env::set_var("PULSAR_BASIC_PASSWORD", password);
+    // }
 
-    if let Ok(token) = env::var("PULSAR_TOKEN") {
-        let authentication = Authentication {
-            name: "token".to_string(),
-            data: token.into_bytes(),
-        };
+    // if let Ok(token) = env::var("PULSAR_TOKEN") {
+    //     let authentication = Authentication {
+    //         name: "token".to_string(),
+    //         data: token.into_bytes(),
+    //     };
 
-        builder = builder.with_auth(authentication);
-    } else if let Ok(oauth2_cfg) = env::var("PULSAR_OAUTH2") {
-        builder = builder.with_auth_provider(OAuth2Authentication::client_credentials(
-            serde_json::from_str(oauth2_cfg.as_str())
-                .unwrap_or_else(|_| panic!("invalid oauth2 config [{}]", oauth2_cfg.as_str())),
-        ));
-    } else if let (Ok(username), Ok(password)) = (
-        env::var("PULSAR_BASIC_USERNAME"),
-        env::var("PULSAR_BASIC_PASSWORD"),
-    ) {
-        println!("username: {:?}, password: {:?}", username, password);
-        builder = builder.with_auth_provider(BasicAuthentication::new(&username, &password))
-    }
+    //     builder = builder.with_auth(authentication);
+    // } else if let Ok(oauth2_cfg) = env::var("PULSAR_OAUTH2") {
+    //     builder = builder.with_auth_provider(OAuth2Authentication::client_credentials(
+    //         serde_json::from_str(oauth2_cfg.as_str())
+    //             .unwrap_or_else(|_| panic!("invalid oauth2 config [{}]", oauth2_cfg.as_str())),
+    //     ));
+    // } else if let (Ok(username), Ok(password)) = (
+    //     env::var("PULSAR_BASIC_USERNAME"),
+    //     env::var("PULSAR_BASIC_PASSWORD"),
+    // ) {
+    //     println!("username: {:?}, password: {:?}", username, password);
+    //     builder = builder.with_auth_provider(BasicAuthentication::new(&username, &password))
+    // }
     // builder.with_certificate_chain(certificate_chain);
+    let auth = Authentication {
+        name: access_id.to_string(),
+        data: gen_password(access_id, access_key).into_bytes(),
+    };
+
+    builder = builder.with_allow_insecure_connection(true)
+    .with_auth(auth);
 
     let pulsar: Pulsar<_> = builder.build().await?;
 

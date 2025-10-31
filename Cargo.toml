@@ -85,9 +85,9 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3" }
 tracing-opentelemetry = { version = "0.31" }
 
-taosx-core = { path = "../taosx/taosx-core" }
-taosx-ipc = { path = "../taosx/taosx-ipc" }
-tmp-to-local = { path = "../taosx/crates/tmq-to-local", package = "tmq-to-local" }
+#taosx-core = { path = "../taosx/taosx-core" }
+#taosx-ipc = { path = "../taosx/taosx-ipc" }
+#tmp-to-local = { path = "../taosx/crates/tmq-to-local", package = "tmq-to-local" }
 
 mongodb = { version = "3.0.0", features = [
   "aws-auth",
@@ -116,6 +116,9 @@ pulsar = { path = "external/pulsar-rs" }
 env_logger = "0.11.8"
 reqwest = "0.12.24"
 snafu = "0.8.5"
+
+hex = "0.4"
+md5 = "0.7"
 
 [workspace.dependencies.taos]
 # path = "../taos-connector-rust/taos"
