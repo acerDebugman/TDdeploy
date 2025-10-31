@@ -108,11 +108,11 @@ pub async fn consumer_main() -> anyhow::Result<()> {
     // }
     // builder.with_certificate_chain(certificate_chain);
     let data = format!("{}", serde_json::json!({
-        "username": "auth1",
+        "username": access_id,
         "password": gen_password(access_id, access_key)
     }));
     let auth = Authentication {
-        name: access_id.to_string(),
+        name: "auth1".to_owned(),
         data: data.into_bytes(),
     };
 
