@@ -23,6 +23,12 @@ influx --username root --password taosdata -database mydb -execute 'SELECT * FRO
 influx -import -path=output_lp.csv -precision=ns -password=taosdata  -username=root
 ```
 
+```
+```
+> insert scada_value,id=1,station="bj",type="car" value=1.1,quality=10,flags=1
+> insert scada_value,id=1,station="bj",type="car" quality=10,flags=1
+> insert scada_value,id=1,station="bj",type="car" value=3.1,quality=11,flags=1
+```
 
 
 
