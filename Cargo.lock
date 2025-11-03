@@ -3267,6 +3267,7 @@ dependencies = [
 name = "learn_pest"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "pest",
  "pest_derive",
  "tokio",
