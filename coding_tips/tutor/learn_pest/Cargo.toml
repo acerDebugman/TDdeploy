@@ -1,0 +1,23 @@
+[package]
+name = "learn_pest"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+pest = "2.8.3"
+pest_derive = "2.8.3"
+tokio = { version = "1.45.1", features = [
+   "rt",
+   "rt-multi-thread",
+   "io-util",
+   "io-std",
+   "net",
+   "time",
+   "process",
+   "macros",
+   "sync",
+   "signal",
+   "fs",
+] }
+
+anyhow = "1.0.79"
