@@ -8,7 +8,6 @@ members = [
     "crates/jira_case",
     "crates/arsenal", 
     "coding_tips/tutor/learn_pest",
-    "crates/test_rust_conn", 
 ]
 exclude = []
 
