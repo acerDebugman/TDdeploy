@@ -96,6 +96,7 @@ reqwest.workspace = true
 
 hex.workspace = true
 md5.workspace = true
+dotenvy.workspace = true
 
 [dev-dependencies]
 #assert_cmd.workspace = true

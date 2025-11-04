@@ -1,17 +1,35 @@
-todo:
+## 测试数据
+
+测试数据可以使用 example 里的 mysql_producer_loop.rs
+
+
+mysql 测试：
+
+当前引起问题：
+
+1. 
+
+
+mysql 的 breakpoint 目前会失效: 因为 sled 当前只允许打开一个；
+
+
+
+## arc 测试
+
+
+
+
+## todo:
 
 1. agent 发送流程： persist-component 组件使用了 breakpoint db
 2. agent 模式下 TaskScheduler 的也要替换
-
-
+3. arc 测试
 
 测试用例:
 
 ```
 cargo test --package taosx-core --lib -- utils::breakpoints::tests --nocapture
 ```
-
-
 
 influxdb 导入数据
 
@@ -24,10 +42,13 @@ influx -import -path=output_lp.csv -precision=ns -password=taosdata  -username=r
 ```
 
 ```
+
 ```
+
 > insert scada_value,id=1,station="bj",type="car" value=1.1,quality=10,flags=1
 > insert scada_value,id=1,station="bj",type="car" quality=10,flags=1
 > insert scada_value,id=1,station="bj",type="car" value=3.1,quality=11,flags=1
+
 ```
 
 
@@ -45,8 +66,8 @@ influx -import -path=output_lp.csv -precision=ns -password=taosdata  -username=r
 POST
 
 ```
-http://192.168.2.131:6060/api/x/tasks/2/stop
 
+http://192.168.2.131:6060/api/x/tasks/2/stop
 
 ```
 
@@ -55,7 +76,9 @@ http://192.168.2.131:6060/api/x/tasks/2/stop
 POST
 
 ```
+
 http://192.168.2.131:6060/api/x/tasks/2/start
+
 ```
 
 执行逻辑:
@@ -70,6 +93,7 @@ http://192.168.2.131:6060/api/x/tasks/2/start
 post
 
 ```
+
 http://192.168.2.131:6060/api/x/tasks/2/delete
 
 ```
@@ -79,9 +103,11 @@ http://192.168.2.131:6060/api/x/tasks/2/delete
 1. scheduler 停止
 2. 软删除 sqlite 数据
 3. 最后删除 breakpoints
-   ```
+```
+
    taosx_core::utils::breakpoints::breakpoints_clear(&task_id).await?;
-   ```
+
+```
 
 
 TaskScheduler 里的 table_cache 和 breakpoints_db 都是为了放到了 transofrm/sink 阶段的数据流 里去 写入数据 的. 这是为了
@@ -97,8 +123,10 @@ fix/TS-7443-main-breakpoint-global-cache-version
 新使用的组件:
 
 ```
+
 once_cell  : 初始化执行
 temp_env   : 用于测试环境,让修改同一个环境变量变成顺序的执行的,因为 tokio::test 是并行执行的,使用 temp_env 的 async 方法,可以顺序执行
 
+```
 
 ```
