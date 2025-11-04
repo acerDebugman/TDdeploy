@@ -98,6 +98,15 @@ hex.workspace = true
 md5.workspace = true
 dotenvy.workspace = true
 
+aes.workspace = true
+cipher.workspace = true
+ecb = "0.1.2"
+aes-gcm = "0.10.3"
+block-padding = "0.3.3"
+thiserror = "1.0.61"
+hex-literal = "1.1.0"
+generic-array = "1.3.5"
+
 [dev-dependencies]
 #assert_cmd.workspace = true
 assert_cmd = "2.0.17"

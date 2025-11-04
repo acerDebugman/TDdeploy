@@ -43,7 +43,6 @@ pub async fn breakpoints_get_all(sled_path: &str) -> anyhow::Result<Vec<(String,
     Ok(result)
 }
 
-// 不可能实现：一个 arc 变量，可能同事进入两个线程，然后在两个线程执行完后释放,关键是不知道什么时候释放
 pub async fn test_arc_weak() {
     let d = std::sync::Arc::new(String::from("abc"));
     let d_weak = Arc::downgrade(&d);

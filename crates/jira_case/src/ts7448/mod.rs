@@ -4,6 +4,7 @@ pub mod batching;
 pub mod reader;
 pub mod round_trip;
 pub mod consumer_tuya;
+pub mod auth;
 
 pub async fn ts7448_main() -> anyhow::Result<()> {
 
