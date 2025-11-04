@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate serde;
 use std::env;
+use std::{time::{SystemTime, UNIX_EPOCH}};
 
 use pulsar::{
     authentication::{basic::BasicAuthentication, oauth2::OAuth2Authentication},
