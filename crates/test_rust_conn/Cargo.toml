@@ -8,8 +8,8 @@ shadow-rs = { version = "1.1", default-features = false }
 # taos = "*"
 # taos = { version = "*", default-features = false, features = ["ws"] }
 # taos = { version = "*", default-features = false, features = ["native"] }
-taos = { path = "/home/algo/rust_workspace/taos-connector-rust/taos", default-features = false, features = ["ws"], package="taos" }
-# taos = { path = "/home/algo/rust_workspace/taos-connector-rust/taos", default-features = true, package="taos" }
+taos = { path = "/home/algo/rust_space/taos-connector-rust/taos", default-features = false, features = ["ws"], package="taos" }
+# taos = { path = "/home/algo/rust_space/taos-connector-rust/taos", default-features = true, package="taos" }
 tokio = { version = "1.45", features = ["full"] }
 tokio-util = "0.7.15"
 anyhow = { version = "1.0" }

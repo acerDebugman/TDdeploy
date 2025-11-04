@@ -6,8 +6,10 @@ edition = "2024"
 [workspace]
 members = [
     "crates/jira_case",
-    "crates/arsenal"
-, "coding_tips/tutor/learn_pest"]
+    "crates/arsenal", 
+    "coding_tips/tutor/learn_pest",
+    "crates/test_rust_conn", 
+]
 exclude = []
 
 [workspace.dependencies]

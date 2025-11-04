@@ -7,7 +7,8 @@ use tokio::time::sleep;
 async fn main() -> mqtt::Result<()> {
     // 1. 创建 MQTT 客户端
     let create_opts = mqtt::CreateOptionsBuilder::new()
-        .server_uri("tcp://localhost:1883")  
+        // .server_uri("tcp://localhost:1883")  
+        .server_uri("tcp://192.168.2.131:1883")  
         .client_id("rust-producer")
         .finalize();
 
@@ -27,7 +28,7 @@ async fn main() -> mqtt::Result<()> {
     let topic = "meters_mqtt";
     println!("topic: {topic}");
     
-    for i in 0..10 {
+    for i in 0..10000 {
         let payload = json!({
             "ts": chrono::Utc::now().timestamp_millis(),
             "id": i % 3,
