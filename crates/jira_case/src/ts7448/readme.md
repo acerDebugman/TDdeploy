@@ -58,15 +58,11 @@ pulsar-admin topics create-partitioned-topic \
     --partitions 12
 ```
 
-
-
 列出所有的 topic:
 
 ```
 pulsar-admin topics list public/defaulta
 ```
-
-
 
 查看 订阅 cursor 位置:
 
@@ -519,10 +515,6 @@ apt-get install protobuf-compiler
 1. taos-ui/componnets/views/sourceConfig.vue  才是 数据源配置 的页面。
 2. 所有数据源的页面，应该是根据每个 json文件的 配置，动态渲染产生的 单独页面。所以应该是改内部的判断字段。
 
-
-
-
-
 transform 可以实现的功能：这种复杂的 json, 可以通过 parser json 解析第一层，然后再
 
 ```
@@ -550,8 +542,6 @@ transform 可以实现的功能：这种复杂的 json, 可以通过 parser json
   "t": 1762499780403
 }
 ```
-
-
 
 ## todo
 
@@ -595,6 +585,8 @@ select `limits` from information_schema.ins_grants_full where grant_name='kafka'
     1. 也不见得比 thiserror 好用，下次不用了
 20. ins_grants_full 支持 **
 21. 补充部分 consumer 的测试用例
+22. 涂鸦命令行测试 **
+23. metrics 有新数据进来会自动停止 **
 
 pulsar-rs bug:
 
@@ -761,12 +753,7 @@ xxxzgc*** auth_data: Some(Authentication { name: "49rmt4r5ukgu3rayuxcr", data: [
 scp -i tuya-test_key.pem amazon-corretto-8-x64-linux-jdk.tar.gz  taosdata@52.249.217.13:~
 ```
 
-
-
 ### 一些测试用例代码
-
-
-
 
 ```
 
@@ -793,7 +780,6 @@ mod tests {
 }
 
 ```
-
 
 数据样例：从样例数据发现：
 
@@ -838,8 +824,6 @@ Query OK, 1 row(s) in set (0.002056s)
 
 ```
 
-
-
 ### 创建任务请求命令行
 
 ```
@@ -857,7 +841,6 @@ curl 'http://52.249.217.13:6060/api/x/tasks' \
   --data-raw '{"from":"","from_json":{"agent":"","type":"pulsarTuya","data":{"endpoint":"mqe.tuyaus.com:7285","tuya_access_id":"49rmt4r5ukgu3rayuxcr","tuya_access_key":"fbe6805862cc4527a90e782967c79b31","tuya_env":"test","timeout":"0ms","initial_position":"Earliest","char_encoding":"UTF_8","read_concurrency":0,"batch_size":1000,"written_concurrent":null,"health_check_window_in_second":"0s","busy_threshold":"100%","max_queue_length":1000,"max_errors_in_window":10}},"name":"tuya1","to":"taos+http://root:taosdata@tuya-test:6041/testdb","labels":["type::datain","cluster-id::1980594558856407762","user::root"],"parser":{"parser":{"global":{"cache":{"max_size":"1GB","location":"","on_fail":"skip"},"archive":{"keep_days":"30d","max_size":"1GB","location":"","on_fail":"rotate"},"database_connection_error":"cache","database_not_exist":"break","table_not_exist":"retry","primary_timestamp_overflow":"archive","primary_timestamp_null":"archive","primary_key_null":"archive","table_name_length_overflow":"archive","table_name_contains_illegal_char":{"replace_to":""},"variable_not_exist_in_table_name_template":{"replace_to":""},"field_name_not_found":"add_field","field_name_length_overflow":"archive","field_length_extend":true,"field_length_overflow":"archive","ingesting_error":"archive","connection_timeout_in_second":"30s"},"parse":{"value":{"json":""}},"model":{"name":"t_${protocol}","using":"tuya","tags":["protocol","pv"],"columns":["ts","data","sign","t"]},"mutate":[{"map":{"ts":{"cast":"t","as":"TIMESTAMP(ms)"},"data":{"cast":"data","as":"VARCHAR"},"sign":{"cast":"sign","as":"VARCHAR"},"t":{"cast":"t","as":"BIGINT"},"protocol":{"cast":"protocol","as":"BIGINT"},"pv":{"cast":"pv","as":"VARCHAR"}}}]},"input":[{"value":"{\"data\":\"{\\\"dataId\\\":\\\"0006431D37586434BC782DBF68140721\\\",\\\"devId\\\":\\\"ebc778f3c5d9908ff6plgl\\\",\\\"productKey\\\":\\\"9exm2qiar0dvqoxv\\\",\\\"status\\\":[{\\\"3\\\":\\\"45\\\",\\\"code\\\":\\\"humidity_current\\\",\\\"t\\\":1762642621916,\\\"value\\\":45}]}\",\"protocol\":4,\"pv\":\"2.0\",\"sign\":\"bf206ca28c260c92379148d50dab3c6a\",\"t\":1762642622109}","key":"ebc778f3c5d9908ff6plgl"},{"value":"{\"data\":\"{\\\"dataId\\\":\\\"0006431D38939B49C3E096C2680902C1\\\",\\\"devId\\\":\\\"eb9ce1146ab84d9872spvt\\\",\\\"productKey\\\":\\\"plwbuwzx\\\",\\\"status\\\":[{\\\"1\\\":\\\"-175\\\",\\\"code\\\":\\\"va_temperature\\\",\\\"t\\\":1762642642576,\\\"value\\\":-175}]}\",\"protocol\":4,\"pv\":\"2.0\",\"sign\":\"fbe1153e520807517d0e1a1562135bff\",\"t\":1762642642881}","key":"eb9ce1146ab84d9872spvt"},{"value":"{\"data\":\"{\\\"dataId\\\":\\\"0006431D3895018FC3E096C2680902C2\\\",\\\"devId\\\":\\\"eb9ce1146ab84d9872spvt\\\",\\\"productKey\\\":\\\"plwbuwzx\\\",\\\"status\\\":[{\\\"2\\\":\\\"970\\\",\\\"code\\\":\\\"va_humidity\\\",\\\"t\\\":1762642642667,\\\"value\\\":970}]}\",\"protocol\":4,\"pv\":\"2.0\",\"sign\":\"62dd8af0091c52ca419760b04d13ac79\",\"t\":1762642642999}","key":"eb9ce1146ab84d9872spvt"},{"value":"{\"data\":\"{\\\"dataId\\\":\\\"0006431D3E76EC57BC782DBF68140725\\\",\\\"devId\\\":\\\"ebc778f3c5d9908ff6plgl\\\",\\\"productKey\\\":\\\"9exm2qiar0dvqoxv\\\",\\\"status\\\":[{\\\"3\\\":\\\"43\\\",\\\"code\\\":\\\"humidity_current\\\",\\\"t\\\":1762642741358,\\\"value\\\":43}]}\",\"protocol\":4,\"pv\":\"2.0\",\"sign\":\"db99f70677200d93c6c2f5a05ae1b761\",\"t\":1762642741722}","key":"ebc778f3c5d9908ff6plgl"},{"value":"{\"data\":\"{\\\"dataId\\\":\\\"0006431D4824CDEF76A1CCBF680F1D49\\\",\\\"devId\\\":\\\"eba9e60b9b453cc668tjns\\\",\\\"productKey\\\":\\\"ef7aaqdzdaqggar7\\\",\\\"status\\\":[{\\\"3\\\":\\\"52\\\",\\\"code\\\":\\\"humidity_current\\\",\\\"t\\\":1762642903750,\\\"value\\\":52}]}\",\"protocol\":4,\"pv\":\"2.0\",\"sign\":\"d11e55eea0e60b0e71158b8d9ef974a2\",\"t\":1762642903916}","key":"eba9e60b9b453cc668tjns"}],"format":{"pageCount":7,"pageSize":20,"currentPage":1}}}' \
   --insecure
 ```
-
 
 parser sqlite db 里的：
 
@@ -976,7 +959,6 @@ parser sqlite db 里的：
   }
 }
 ```
-
 
 ## 问题
 
