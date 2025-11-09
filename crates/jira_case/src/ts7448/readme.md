@@ -58,6 +58,16 @@ pulsar-admin topics create-partitioned-topic \
     --partitions 12
 ```
 
+
+
+列出所有的 topic:
+
+```
+pulsar-admin topics list public/defaulta
+```
+
+
+
 查看 订阅 cursor 位置:
 
 ```
@@ -504,6 +514,45 @@ taosx run -f "pulsar://192.168.2.131:6650?batch_size=1000&busy_threshold=100%&ch
 apt-get install protobuf-compiler
 ```
 
+## 代码逻辑：
+
+1. taos-ui/componnets/views/sourceConfig.vue  才是 数据源配置 的页面。
+2. 所有数据源的页面，应该是根据每个 json文件的 配置，动态渲染产生的 单独页面。所以应该是改内部的判断字段。
+
+
+
+
+
+transform 可以实现的功能：这种复杂的 json, 可以通过 parser json 解析第一层，然后再
+
+```
+{
+  "data": {
+    "dataId": "000642FBF5506604B3863BC268080499",
+    "status": [
+      {
+        "2": "2300",
+        "code": "temp_current",
+        "t": 1762499780177,
+        "value": 2300
+      },
+      {
+        "2": "444",
+        "code": "tttt",
+        "t": 1762499780177,
+        "value": 777
+      }
+    ]
+  },
+  "protocol": 4,
+  "pv": "2.0",
+  "sign": "b86c4d071e2172477f4b4826d773e45e",
+  "t": 1762499780403
+}
+```
+
+
+
 ## todo
 
 ### 需要添加表
@@ -526,21 +575,26 @@ select `limits` from information_schema.ins_grants_full where grant_name='kafka'
    1. 目前依赖 pulsar 的 cursor, 不手动做了；
 3. metrics 如何做？(done)
    1. 添加新的 metrics (done)
-4. 后续是否需要需要改为 shared 模式？
-5. 测试用例 **
-6. jwt_token, basic_auth, mtls 测试
+4. 后续是否需要需要改为 shared 模式？(xx暂时放弃)
+5. 测试用例 (done)
+6. jwt_token, basic_auth, mtls 测试 (xx暂时放弃)
 7. 任务列表页面 list 上，似乎不可以选择任务 (done)
    1. 可以选择，开了开发工具导致 (done)
 8. 命令行 (done)
 9. agent 测试 （done）
 10. 性能测试
-11. 涂鸦的 文档查看, 发现内部有加密工具，可能需要进行 二次 解密的开发
+11. 涂鸦的 文档查看, 发现内部有加密工具，可能需要进行 二次 解密的开发 (done)
 12. broker 多地址确认，只支持单地址 (done)
 13. 删除掉 xxxzgc 注释 **
-14. broker_url 点击编辑进入后 broker_url 为空
-15. explorer/.env 文件恢复 **
-16. agent 模式下的 do_put 流里也需要支持 pulsar, 但是为什么 测试 没报错?
-17. 
+14. broker_url 点击编辑进入后 broker_url 为空 **
+15. 创建 transform 多个 key 的问题 **
+16. explorer/.env 文件恢复 (done)
+17. agent 模式下的 do_put 流里也需要支持 pulsar, 但是为什么 测试 没报错?
+18. 增加 pulsar-tuya 数据源 (done)
+19. 错误改造 decryptor snafu (done)
+    1. 也不见得比 thiserror 好用，下次不用了
+20. ins_grants_full 支持 **
+21. 补充部分 consumer 的测试用例
 
 pulsar-rs bug:
 
@@ -676,7 +730,6 @@ data after decryption dataJsonStr={"dataId":"0006426EB5731E8B7DA5A0BF68071196","
 
 key位置： /root/secret.key
 
-
 加密的 comman data:
 
 ```
@@ -686,7 +739,6 @@ xxxzgc: command data: {"username":"49rmt4r5ukgu3rayuxcr","password":"ac591f4f689
 
 ```
 
-
 pulsar-rs 的消息：
 
 ```
@@ -695,9 +747,7 @@ xxxzgc*** auth_data: Some(Authentication { name: "49rmt4r5ukgu3rayuxcr", data: [
 
 ```
 
-
 使用 pulsar-rs 鉴权上，还是有问题，和
-
 
 #### 登录测试机器
 
@@ -710,6 +760,223 @@ xxxzgc*** auth_data: Some(Authentication { name: "49rmt4r5ukgu3rayuxcr", data: [
 文件传输:
 scp -i tuya-test_key.pem amazon-corretto-8-x64-linux-jdk.tar.gz  taosdata@52.249.217.13:~
 ```
+
+
+
+### 一些测试用例代码
+
+
+
+
+```
+
+#[cfg(test)]
+mod tests {
+    use taos::IntoDsn;
+
+
+    #[tokio::test]
+    #[ignore]
+    async fn test_pulsar_to_taos() {
+        let dsn = format!(
+            "pulsar://{}?ca={}&ca_password=abcdefgh&cert={}&cert_key={}",
+            "192.168.2.131:6650",
+            "@../tests/kafka/ca-cert",
+            "@../tests/kafka/client_test_client.pem",
+            "@../tests/kafka/client_test_client.key",
+        )
+        .into_dsn()
+        .expect("ssl dsn should be valid");
+
+    }
+
+}
+
+```
+
+
+数据样例：从样例数据发现：
+
+1. data 里的数据格式不一样
+2. 甚至 status 里的数据格式也不一样
+
+可以说明：无法用统一的 transform 导入数据，只能直接存储 json string
+
+```
+taos> select last(*) from tuya \G;
+*************************** 1.row ***************************
+  last(ts): 2025-11-09 01:21:09.901
+last(data): {"bizCode":"deviceOnline","bizData":{"devId":"eb04108544a7478d53rvtr","uid":"az1756942079386rVhsK","productId":"c8idttdahj9y6eaw","time":1762651269796},"ts":1762651269898}
+last(sign): 8169e9432c65bf3f4cdfc4bbca97ca62
+   last(t): 1762651269901
+Query OK, 1 row(s) in set (0.002240s)
+
+taos> select last(*) from tuya \G;
+*************************** 1.row ***************************
+  last(ts): 2025-11-09 01:21:19.949
+last(data): {"dataId":"0006431F3B62131FBC782DBF68140803","devId":"ebc778f3c5d9908ff6plgl","productKey":"9exm2qiar0dvqoxv","status":[{"3":"44","code":"humidity_current","t":1762651279595,"value":44}]}
+last(sign): 7d714d25925bb4f50c4fc29af6ed2ddb
+   last(t): 1762651279949
+Query OK, 1 row(s) in set (0.002219s)
+
+taos> select last(*) from tuya \G;
+*************************** 1.row ***************************
+  last(ts): 2025-11-09 01:21:19.949
+last(data): {"dataId":"0006431F3B62131FBC782DBF68140803","devId":"ebc778f3c5d9908ff6plgl","productKey":"9exm2qiar0dvqoxv","status":[{"3":"44","code":"humidity_current","t":1762651279595,"value":44}]}
+last(sign): 7d714d25925bb4f50c4fc29af6ed2ddb
+   last(t): 1762651279949
+Query OK, 1 row(s) in set (0.002219s)
+
+taos> select last(*) from tuya \G;
+*************************** 1.row ***************************
+  last(ts): 2025-11-09 01:22:22.188
+last(data): {"dataId":"0006431F3F176B32C3E096C2680902EB","devId":"eb9ce1146ab84d9872spvt","productKey":"plwbuwzx","status":[{"1":"-55","code":"va_temperature","t":1762651341812,"value":-55}]}
+last(sign): 1ff377a9112b2b9c8d1f3f552669f03b
+   last(t): 1762651342188
+Query OK, 1 row(s) in set (0.002056s)
+
+
+```
+
+
+
+### 创建任务请求命令行
+
+```
+
+curl 'http://52.249.217.13:6060/api/x/tasks' \
+  -H 'Accept: application/json, text/plain, */*' \
+  -H 'Accept-Language: zh-CN,zh;q=0.9' \
+  -H 'Authorization: Basic cm9vdDp0YW9zZGF0YQ==' \
+  -H 'Connection: keep-alive' \
+  -H 'Content-Type: application/json' \
+  -H 'Cookie: login_TDC=true; TDengine-Token=Basic%20cm9vdDp0YW9zZGF0YQ==' \
+  -H 'Origin: http://52.249.217.13:6060' \
+  -H 'Referer: http://52.249.217.13:6060/dataIn/add' \
+  -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.6533.100 Safari/537.36' \
+  --data-raw '{"from":"","from_json":{"agent":"","type":"pulsarTuya","data":{"endpoint":"mqe.tuyaus.com:7285","tuya_access_id":"49rmt4r5ukgu3rayuxcr","tuya_access_key":"fbe6805862cc4527a90e782967c79b31","tuya_env":"test","timeout":"0ms","initial_position":"Earliest","char_encoding":"UTF_8","read_concurrency":0,"batch_size":1000,"written_concurrent":null,"health_check_window_in_second":"0s","busy_threshold":"100%","max_queue_length":1000,"max_errors_in_window":10}},"name":"tuya1","to":"taos+http://root:taosdata@tuya-test:6041/testdb","labels":["type::datain","cluster-id::1980594558856407762","user::root"],"parser":{"parser":{"global":{"cache":{"max_size":"1GB","location":"","on_fail":"skip"},"archive":{"keep_days":"30d","max_size":"1GB","location":"","on_fail":"rotate"},"database_connection_error":"cache","database_not_exist":"break","table_not_exist":"retry","primary_timestamp_overflow":"archive","primary_timestamp_null":"archive","primary_key_null":"archive","table_name_length_overflow":"archive","table_name_contains_illegal_char":{"replace_to":""},"variable_not_exist_in_table_name_template":{"replace_to":""},"field_name_not_found":"add_field","field_name_length_overflow":"archive","field_length_extend":true,"field_length_overflow":"archive","ingesting_error":"archive","connection_timeout_in_second":"30s"},"parse":{"value":{"json":""}},"model":{"name":"t_${protocol}","using":"tuya","tags":["protocol","pv"],"columns":["ts","data","sign","t"]},"mutate":[{"map":{"ts":{"cast":"t","as":"TIMESTAMP(ms)"},"data":{"cast":"data","as":"VARCHAR"},"sign":{"cast":"sign","as":"VARCHAR"},"t":{"cast":"t","as":"BIGINT"},"protocol":{"cast":"protocol","as":"BIGINT"},"pv":{"cast":"pv","as":"VARCHAR"}}}]},"input":[{"value":"{\"data\":\"{\\\"dataId\\\":\\\"0006431D37586434BC782DBF68140721\\\",\\\"devId\\\":\\\"ebc778f3c5d9908ff6plgl\\\",\\\"productKey\\\":\\\"9exm2qiar0dvqoxv\\\",\\\"status\\\":[{\\\"3\\\":\\\"45\\\",\\\"code\\\":\\\"humidity_current\\\",\\\"t\\\":1762642621916,\\\"value\\\":45}]}\",\"protocol\":4,\"pv\":\"2.0\",\"sign\":\"bf206ca28c260c92379148d50dab3c6a\",\"t\":1762642622109}","key":"ebc778f3c5d9908ff6plgl"},{"value":"{\"data\":\"{\\\"dataId\\\":\\\"0006431D38939B49C3E096C2680902C1\\\",\\\"devId\\\":\\\"eb9ce1146ab84d9872spvt\\\",\\\"productKey\\\":\\\"plwbuwzx\\\",\\\"status\\\":[{\\\"1\\\":\\\"-175\\\",\\\"code\\\":\\\"va_temperature\\\",\\\"t\\\":1762642642576,\\\"value\\\":-175}]}\",\"protocol\":4,\"pv\":\"2.0\",\"sign\":\"fbe1153e520807517d0e1a1562135bff\",\"t\":1762642642881}","key":"eb9ce1146ab84d9872spvt"},{"value":"{\"data\":\"{\\\"dataId\\\":\\\"0006431D3895018FC3E096C2680902C2\\\",\\\"devId\\\":\\\"eb9ce1146ab84d9872spvt\\\",\\\"productKey\\\":\\\"plwbuwzx\\\",\\\"status\\\":[{\\\"2\\\":\\\"970\\\",\\\"code\\\":\\\"va_humidity\\\",\\\"t\\\":1762642642667,\\\"value\\\":970}]}\",\"protocol\":4,\"pv\":\"2.0\",\"sign\":\"62dd8af0091c52ca419760b04d13ac79\",\"t\":1762642642999}","key":"eb9ce1146ab84d9872spvt"},{"value":"{\"data\":\"{\\\"dataId\\\":\\\"0006431D3E76EC57BC782DBF68140725\\\",\\\"devId\\\":\\\"ebc778f3c5d9908ff6plgl\\\",\\\"productKey\\\":\\\"9exm2qiar0dvqoxv\\\",\\\"status\\\":[{\\\"3\\\":\\\"43\\\",\\\"code\\\":\\\"humidity_current\\\",\\\"t\\\":1762642741358,\\\"value\\\":43}]}\",\"protocol\":4,\"pv\":\"2.0\",\"sign\":\"db99f70677200d93c6c2f5a05ae1b761\",\"t\":1762642741722}","key":"ebc778f3c5d9908ff6plgl"},{"value":"{\"data\":\"{\\\"dataId\\\":\\\"0006431D4824CDEF76A1CCBF680F1D49\\\",\\\"devId\\\":\\\"eba9e60b9b453cc668tjns\\\",\\\"productKey\\\":\\\"ef7aaqdzdaqggar7\\\",\\\"status\\\":[{\\\"3\\\":\\\"52\\\",\\\"code\\\":\\\"humidity_current\\\",\\\"t\\\":1762642903750,\\\"value\\\":52}]}\",\"protocol\":4,\"pv\":\"2.0\",\"sign\":\"d11e55eea0e60b0e71158b8d9ef974a2\",\"t\":1762642903916}","key":"eba9e60b9b453cc668tjns"}],"format":{"pageCount":7,"pageSize":20,"currentPage":1}}}' \
+  --insecure
+```
+
+
+parser sqlite db 里的：
+
+```
+
+{
+  "parser": {
+    "global": {
+      "cache": {
+        "max_size": "1GB",
+        "location": "",
+        "on_fail": "skip"
+      },
+      "archive": {
+        "keep_days": "30d",
+        "max_size": "1GB",
+        "location": "",
+        "on_fail": "rotate"
+      },
+      "database_connection_error": "cache",
+      "database_not_exist": "break",
+      "table_not_exist": "retry",
+      "primary_timestamp_overflow": "archive",
+      "primary_timestamp_null": "archive",
+      "primary_key_null": "archive",
+      "table_name_length_overflow": "archive",
+      "table_name_contains_illegal_char": {
+        "replace_to": ""
+      },
+      "variable_not_exist_in_table_name_template": {
+        "replace_to": ""
+      },
+      "field_name_not_found": "add_field",
+      "field_name_length_overflow": "archive",
+      "field_length_extend": true,
+      "field_length_overflow": "archive",
+      "ingesting_error": "archive",
+      "connection_timeout_in_second": "30s"
+    },
+    "parse": {
+      "value": {
+        "json": ""
+      }
+    },
+    "model": {
+      "name": "t_${protocol}",
+      "using": "tuya",
+      "tags": [
+        "protocol",
+        "pv"
+      ],
+      "columns": [
+        "ts",
+        "data",
+        "sign",
+        "t"
+      ]
+    },
+    "mutate": [
+      {
+        "map": {
+          "ts": {
+            "cast": "t",
+            "as": "TIMESTAMP(ms)"
+          },
+          "data": {
+            "cast": "data",
+            "as": "VARCHAR"
+          },
+          "sign": {
+            "cast": "sign",
+            "as": "VARCHAR"
+          },
+          "t": {
+            "cast": "t",
+            "as": "BIGINT"
+          },
+          "protocol": {
+            "cast": "protocol",
+            "as": "BIGINT"
+          },
+          "pv": {
+            "cast": "pv",
+            "as": "VARCHAR"
+          }
+        }
+      }
+    ]
+  },
+  "input": [
+    {
+      "value": "{\"data\":\"{\\\"dataId\\\":\\\"0006431D37586434BC782DBF68140721\\\",\\\"devId\\\":\\\"ebc778f3c5d9908ff6plgl\\\",\\\"productKey\\\":\\\"9exm2qiar0dvqoxv\\\",\\\"status\\\":[{\\\"3\\\":\\\"45\\\",\\\"code\\\":\\\"humidity_current\\\",\\\"t\\\":1762642621916,\\\"value\\\":45}]}\",\"protocol\":4,\"pv\":\"2.0\",\"sign\":\"bf206ca28c260c92379148d50dab3c6a\",\"t\":1762642622109}",
+      "key": "ebc778f3c5d9908ff6plgl"
+    },
+    {
+      "value": "{\"data\":\"{\\\"dataId\\\":\\\"0006431D38939B49C3E096C2680902C1\\\",\\\"devId\\\":\\\"eb9ce1146ab84d9872spvt\\\",\\\"productKey\\\":\\\"plwbuwzx\\\",\\\"status\\\":[{\\\"1\\\":\\\"-175\\\",\\\"code\\\":\\\"va_temperature\\\",\\\"t\\\":1762642642576,\\\"value\\\":-175}]}\",\"protocol\":4,\"pv\":\"2.0\",\"sign\":\"fbe1153e520807517d0e1a1562135bff\",\"t\":1762642642881}",
+      "key": "eb9ce1146ab84d9872spvt"
+    },
+    {
+      "value": "{\"data\":\"{\\\"dataId\\\":\\\"0006431D3895018FC3E096C2680902C2\\\",\\\"devId\\\":\\\"eb9ce1146ab84d9872spvt\\\",\\\"productKey\\\":\\\"plwbuwzx\\\",\\\"status\\\":[{\\\"2\\\":\\\"970\\\",\\\"code\\\":\\\"va_humidity\\\",\\\"t\\\":1762642642667,\\\"value\\\":970}]}\",\"protocol\":4,\"pv\":\"2.0\",\"sign\":\"62dd8af0091c52ca419760b04d13ac79\",\"t\":1762642642999}",
+      "key": "eb9ce1146ab84d9872spvt"
+    },
+    {
+      "value": "{\"data\":\"{\\\"dataId\\\":\\\"0006431D3E76EC57BC782DBF68140725\\\",\\\"devId\\\":\\\"ebc778f3c5d9908ff6plgl\\\",\\\"productKey\\\":\\\"9exm2qiar0dvqoxv\\\",\\\"status\\\":[{\\\"3\\\":\\\"43\\\",\\\"code\\\":\\\"humidity_current\\\",\\\"t\\\":1762642741358,\\\"value\\\":43}]}\",\"protocol\":4,\"pv\":\"2.0\",\"sign\":\"db99f70677200d93c6c2f5a05ae1b761\",\"t\":1762642741722}",
+      "key": "ebc778f3c5d9908ff6plgl"
+    },
+    {
+      "value": "{\"data\":\"{\\\"dataId\\\":\\\"0006431D4824CDEF76A1CCBF680F1D49\\\",\\\"devId\\\":\\\"eba9e60b9b453cc668tjns\\\",\\\"productKey\\\":\\\"ef7aaqdzdaqggar7\\\",\\\"status\\\":[{\\\"3\\\":\\\"52\\\",\\\"code\\\":\\\"humidity_current\\\",\\\"t\\\":1762642903750,\\\"value\\\":52}]}\",\"protocol\":4,\"pv\":\"2.0\",\"sign\":\"d11e55eea0e60b0e71158b8d9ef974a2\",\"t\":1762642903916}",
+      "key": "eba9e60b9b453cc668tjns"
+    }
+  ],
+  "format": {
+    "pageCount": 7,
+    "pageSize": 20,
+    "currentPage": 1
+  }
+}
+```
+
 
 ## 问题
 

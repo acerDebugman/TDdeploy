@@ -129,13 +129,13 @@ pub async fn consumer_main() -> anyhow::Result<()> {
 
     let pulsar: Pulsar<_> = builder.build().await?;
 
-    let mut consumer: Consumer<TestData, _> = pulsar
-        .consumer()
+    let mut consumer: Reader<TestData, _> = pulsar
+        .reader()
         .with_topic(topic)
         .with_consumer_name("test_consumer9")
         .with_subscription_type(SubType::Failover)
         .with_subscription("49rmt4r5ukgu3rayuxcr-sub")
-        .build()
+        .into_reader()
         .await?;
 
     // let s = consumer.into_stream();
