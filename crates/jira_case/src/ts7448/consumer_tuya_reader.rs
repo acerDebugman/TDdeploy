@@ -1,7 +1,7 @@
 use std::env;
 use futures::{StreamExt, TryStreamExt};
 use pulsar::{
-    authentication::{basic::BasicAuthentication, oauth2::OAuth2Authentication}, consumer::data::MessageData, Authentication, Consumer, DeserializeMessage, Payload, Pulsar, SubType, TokioExecutor
+    Authentication, Consumer, DeserializeMessage, Payload, Pulsar, SubType, TokioExecutor, authentication::{basic::BasicAuthentication, oauth2::OAuth2Authentication}, consumer::data::MessageData, reader::Reader
 };
 use serde::{Deserialize, Serialize};
 
@@ -129,7 +129,7 @@ pub async fn consumer_main() -> anyhow::Result<()> {
 
     let pulsar: Pulsar<_> = builder.build().await?;
 
-    let mut consumer: Reader<TestData, _> = pulsar
+    let mut reader: Reader<TestData, _> = pulsar
         .reader()
         .with_topic(topic)
         .with_consumer_name("test_consumer9")
@@ -139,23 +139,24 @@ pub async fn consumer_main() -> anyhow::Result<()> {
         .await?;
 
     // let s = consumer.into_stream();
-    let topics = consumer.topics();
-    log::info!("xxxzgc topics: {:?}", topics);
-    let ids = consumer.consumer_id();
-    log::info!("xxxzgc consumer_id: {:?}", ids);
-    let last_msg_id = consumer.get_last_message_id().await?;
+    // let topics = reader.topics();
+    // log::info!("xxxzgc topics: {:?}", topics);
+    // let ids = reader.consumer_id();
+    // log::info!("xxxzgc consumer_id: {:?}", ids);
+    let last_msg_id = reader.get_last_message_id().await?;
     log::info!("xxxzgc last_msg_id: {:?}", last_msg_id);
 
     let mut counter = 0usize;
-    while let Some(msg) = consumer.try_next().await? {
-    // while let Some(msg) = consumer.next().await {
+    while let Some(msg) = reader.try_next().await? {
+    // while let Some(msg) = reader.next().await {
         log::info!("metadata: {:?}", msg.metadata());
         let encrypt_model = msg.metadata().properties.iter().filter(|x| x.key == "em").next().unwrap().value.clone();
+        log::info!("encrypt_model: {:?}", encrypt_model);
         log::info!("id: {:?}", msg.message_id());
         // log::info!("msg: {:?}", msg);
         // panic!("test no ack");
         // consumer.ack(&msg).await?;
-        consumer.ack(&msg).await?;
+        // reader.ack(&msg).await?;
         let data = match msg.deserialize() {
             Ok(data) => data,
             Err(e) => {
@@ -175,7 +176,7 @@ pub async fn consumer_main() -> anyhow::Result<()> {
 
         tokio::time::sleep(std::time::Duration::from_secs(3)).await;
         if counter > 100 {
-            consumer.close().await.expect("Unable to close consumer");
+            // reader.close().await.expect("Unable to close reader");
             break;
         }
     }
