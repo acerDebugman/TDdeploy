@@ -504,6 +504,22 @@ taosx run -f "pulsar://192.168.2.131:6650?batch_size=1000&busy_threshold=100%&ch
 
 ```
 
+
+
+tuya:
+
+```
+
+taosx run -f "pulsarTuya://mqe.tuyaus.com:7285?batch_size=1000&busy_threshold=100%&char_encoding=UTF_8&health_check_window_in_second=0s&initial_position=Earliest&max_errors_in_window=10&max_queue_length=1000&read_concurrency=0&timeout=0ms&tuya_access_id=49rmt4r5ukgu3rayuxcr&tuya_access_key=fbe6805862cc4527a90e782967c79b31&tuya_env=test" -t "taos+http://root:taosdata@tuya-test:6041/tuyadb" -p "@/root/tuya-parser.json"
+```
+
+
+```
+
+
+```
+
+
 ## 依赖组件
 
 ```
@@ -576,7 +592,8 @@ select `limits` from information_schema.ins_grants_full where grant_name='kafka'
 11. 涂鸦的 文档查看, 发现内部有加密工具，可能需要进行 二次 解密的开发 (done)
 12. broker 多地址确认，只支持单地址 (done)
 13. 删除掉 xxxzgc 注释 **
-14. broker_url 点击编辑进入后 broker_url 为空 **
+14. broker_url 点击编辑进入后 broker_url 为空 ** (done)
+    1. dns_to_json 里需要添加 pulsar 和 pulsar_tuya 的特殊处理
 15. 创建 transform 多个 key 的问题 **
 16. explorer/.env 文件恢复 (done)
 17. agent 模式下的 do_put 流里也需要支持 pulsar, 但是为什么 测试 没报错?
@@ -585,7 +602,7 @@ select `limits` from information_schema.ins_grants_full where grant_name='kafka'
     1. 也不见得比 thiserror 好用，下次不用了
 20. ins_grants_full 支持 **
 21. 补充部分 consumer 的测试用例
-22. 涂鸦命令行测试 **
+22. 涂鸦命令行测试 (done)
 23. metrics 有新数据进来会自动停止 **
 
 pulsar-rs bug:
