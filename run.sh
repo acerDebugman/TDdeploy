@@ -2,7 +2,8 @@
 
 git pull
 
-#cargo run -p jira_case --bin ts5820main
+# for kafka
+cargo run -p jira_case --bin ts5820main
 
 #RUST_LOG=info cargo run -p jira_case --bin jira_case
 
@@ -12,4 +13,4 @@ git pull
 # for mqtt
 #cargo run -p test_rust_conn --bin flashmq_pub_taosx
 # for tuya
-RUST_LOG=info cargo run -p jira_case --example pulsar_producer_tuya_loop
+#RUST_LOG=info cargo run -p jira_case --example pulsar_producer_tuya_loop

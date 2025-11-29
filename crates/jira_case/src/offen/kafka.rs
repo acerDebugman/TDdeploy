@@ -11,7 +11,8 @@ pub async fn kafka_main() -> anyhow::Result<()> {
     //let kafka_addr = "172.19.0.6:9092"; // 替换为你的Kafka地址
     //let kafka_addr = "kafka:9092"; // 替换为你的Kafka地址
     // let kafka_addr = "172.20.0.3:9092"; // 替换为你的Kafka地址
-    let kafka_addr = "192.168.2.131:9092"; // 替换为你的Kafka地址
+     let kafka_addr = "192.168.2.131:9092"; // 替换为你的Kafka地址
+    //let kafka_addr = "172.18.0.3:9092"; // 替换为你的Kafka地址
     let topic = "test-topic"; // 替换为你的topic
     // let topic = "test-topic3"; // 替换为你的topic
     let duration = Duration::from_secs(3600000);
@@ -45,7 +46,8 @@ pub async fn send2kafka(kafka_addr: &str, kafka_topic: &str, duration: std::time
         // let item = format!("{}", "255044462D312E330D0A".repeat(1000));
         let item = format!("{}", "255044462D312E330D0A");
         let message = json!({
-            "ts": Utc::now().timestamp_millis(),
+            // "ts": Utc::now().timestamp_millis(),
+            "ts": 1672506061000i64,
             "id": i % 3,
             // "voltage": 0.7 + i as f32,
             // "v_blob": item.as_bytes(),
