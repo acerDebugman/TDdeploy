@@ -7,7 +7,7 @@ edition = "2024"
 members = [
     "crates/jira_case",
     "crates/arsenal", 
-    "coding_tips/tutor/learn_pest",
+    "coding_tips/tutor/learn_pest", "coding_tips/tutor/libuv-example",
 ]
 exclude = []
 

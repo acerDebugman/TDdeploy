@@ -77,7 +77,6 @@ async fn main() -> Result<(), pulsar::Error> {
 
     let mut counter = 0usize;
     loop {
-
         let item = format!("{}", "255044462D312E330D0A");
         let message = serde_json::json!({
             "ts": chrono::Utc::now().timestamp_millis(),
