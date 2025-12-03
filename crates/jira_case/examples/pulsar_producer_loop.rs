@@ -1,10 +1,8 @@
 #[macro_use]
 extern crate serde;
 use std::env;
-
 use pulsar::{
     authentication::{basic::BasicAuthentication, oauth2::OAuth2Authentication},
-    message::proto,
     producer, Authentication, Error as PulsarError, Pulsar, SerializeMessage, TokioExecutor,
 };
 
