@@ -95,7 +95,8 @@ async fn main() -> Result<(), pulsar::Error> {
 
         counter += 1;
         log::info!("{counter} messages");
-        tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
+        // tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
+        tokio::time::sleep(std::time::Duration::from_millis(10)).await;
 
         if counter >= 1000000000 {
             producer.close().await.expect("Unable to close connection");

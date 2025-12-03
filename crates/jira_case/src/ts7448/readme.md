@@ -61,7 +61,7 @@ pulsar-admin topics create-partitioned-topic \
 列出所有的 topic:
 
 ```
-pulsar-admin topics list public/defaulta
+pulsar-admin topics list public/default
 ```
 
 查看 订阅 cursor 位置:
@@ -74,6 +74,25 @@ pulsar-admin topics stats persistent://public/default/pt-zgc-partition-1
 # 非持久化订阅
 bin/pulsar-admin topics stats-non-persistent non-persistent://public/default/your-topic -s your-sub
 ```
+
+
+
+获取有多少个 partition:
+
+```
+pulsar-admin topics get-partitioned-topic-metadata  persistent://public/default/pt-zgc
+```
+
+
+
+```
+删除非分区 Topic
+pulsar-admin topics delete persistent://public/default/pt-zgc
+
+删除分区 Topic
+pulsar-admin topics delete-partitioned-topic persistent://public/default/pt-zgc
+```
+
 
 stats-internal 可以看到具体 subscription 的 cursor 信息:
 pulsar-admin topics stats-internal persistent://public/default/pt-zgc-partition-1
@@ -504,8 +523,6 @@ taosx run -f "pulsar://192.168.2.131:6650?batch_size=1000&busy_threshold=100%&ch
 
 ```
 
-
-
 tuya:
 
 ```
@@ -513,12 +530,10 @@ tuya:
 taosx run -f "pulsarTuya://mqe.tuyaus.com:7285?batch_size=1000&busy_threshold=100%&char_encoding=UTF_8&health_check_window_in_second=0s&initial_position=Earliest&max_errors_in_window=10&max_queue_length=1000&read_concurrency=0&timeout=0ms&tuya_access_id=49rmt4r5ukgu3rayuxcr&tuya_access_key=fbe6805862cc4527a90e782967c79b31&tuya_env=test" -t "taos+http://root:taosdata@tuya-test:6041/tuyadb" -p "@/root/tuya-parser.json"
 ```
 
-
 ```
 
 
 ```
-
 
 ## 依赖组件
 
