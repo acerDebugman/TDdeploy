@@ -1,0 +1,59 @@
+%include {
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+}
+
+/* 定义终结符（token）及其关联的数据类型 */
+%token INTEGER FLOAT PLUS MINUS TIMES DIVIDE LPAREN RPAREN NEWLINE ERROR.
+
+
+/* 定义非终结符的数据类型 */
+%type value {double}
+
+/* 运算符优先级和结合性（越后定义优先级越高） */
+%left PLUS MINUS.
+%left TIMES DIVIDE.
+%right UMINUS.  /* 一元负号 */
+
+/* 语法规则 */
+/* 语法规则：第一个规则自动成为起始规则; 当前这是旧版本的 lemon */
+input ::= value(A) NEWLINE.  {
+    printf("Result: %.2f\n", A);
+}
+
+/* 基本数值 */
+value(A) ::= INTEGER(B).  {
+    A = (double)B;
+}
+value(A) ::= FLOAT(B).  {
+    A = B;
+}
+
+/* 四则运算 */
+value(A) ::= value(B) PLUS value(C).  {
+    A = B + C;
+}
+value(A) ::= value(B) MINUS value(C).  {
+    A = B - C;
+}
+value(A) ::= value(B) TIMES value(C).  {
+    A = B * C;
+}
+value(A) ::= value(B) DIVIDE value(C).  {
+    if (C != 0.0) A = B / C;
+    else {
+        fprintf(stderr, "Error: Division by zero\n");
+        exit(1);
+    }
+}
+
+/* 括号 */
+value(A) ::= LPAREN value(B) RPAREN.  {
+    A = B;
+}
+
+/* 一元负号（高优先级） */
+value(A) ::= MINUS value(B). [UMINUS]  {
+    A = -B;
+}

@@ -1,0 +1,211 @@
+State 0:
+          input ::= * value NEWLINE
+          input ::= * value
+          value ::= * INTEGER
+          value ::= * FLOAT
+          value ::= * value PLUS value
+          value ::= * value MINUS value
+          value ::= * value TIMES value
+          value ::= * value DIVIDE value
+          value ::= * LPAREN value RPAREN
+          value ::= * MINUS value
+
+                       INTEGER shift-reduce 2      value ::= INTEGER
+                         FLOAT shift-reduce 3      value ::= FLOAT
+                         MINUS shift        1      
+                        LPAREN shift        2      
+                         value shift        7      
+                         input accept
+
+State 1:
+          value ::= * INTEGER
+          value ::= * FLOAT
+          value ::= * value PLUS value
+          value ::= * value MINUS value
+          value ::= * value TIMES value
+          value ::= * value DIVIDE value
+          value ::= * LPAREN value RPAREN
+          value ::= * MINUS value
+          value ::= MINUS * value
+
+                       INTEGER shift-reduce 2      value ::= INTEGER
+                         FLOAT shift-reduce 3      value ::= FLOAT
+                         MINUS shift        1      
+                        LPAREN shift        2      
+                         value shift-reduce 9      value ::= MINUS value
+
+State 2:
+          value ::= * INTEGER
+          value ::= * FLOAT
+          value ::= * value PLUS value
+          value ::= * value MINUS value
+          value ::= * value TIMES value
+          value ::= * value DIVIDE value
+          value ::= * LPAREN value RPAREN
+          value ::= LPAREN * value RPAREN
+          value ::= * MINUS value
+
+                       INTEGER shift-reduce 2      value ::= INTEGER
+                         FLOAT shift-reduce 3      value ::= FLOAT
+                         MINUS shift        1      
+                        LPAREN shift        2      
+                         value shift        8      
+
+State 3:
+          value ::= * INTEGER
+          value ::= * FLOAT
+          value ::= * value PLUS value
+          value ::= * value MINUS value
+          value ::= * value TIMES value
+          value ::= * value DIVIDE value
+          value ::= value DIVIDE * value
+          value ::= * LPAREN value RPAREN
+          value ::= * MINUS value
+
+                       INTEGER shift-reduce 2      value ::= INTEGER
+                         FLOAT shift-reduce 3      value ::= FLOAT
+                         MINUS shift        1      
+                        LPAREN shift        2      
+                         value shift-reduce 7      value ::= value DIVIDE value
+
+State 4:
+          value ::= * INTEGER
+          value ::= * FLOAT
+          value ::= * value PLUS value
+          value ::= * value MINUS value
+          value ::= * value TIMES value
+          value ::= value TIMES * value
+          value ::= * value DIVIDE value
+          value ::= * LPAREN value RPAREN
+          value ::= * MINUS value
+
+                       INTEGER shift-reduce 2      value ::= INTEGER
+                         FLOAT shift-reduce 3      value ::= FLOAT
+                         MINUS shift        1      
+                        LPAREN shift        2      
+                         value shift-reduce 6      value ::= value TIMES value
+
+State 5:
+          value ::= * INTEGER
+          value ::= * FLOAT
+          value ::= * value PLUS value
+          value ::= * value MINUS value
+          value ::= value MINUS * value
+          value ::= * value TIMES value
+          value ::= * value DIVIDE value
+          value ::= * LPAREN value RPAREN
+          value ::= * MINUS value
+
+                       INTEGER shift-reduce 2      value ::= INTEGER
+                         FLOAT shift-reduce 3      value ::= FLOAT
+                         MINUS shift        1      
+                        LPAREN shift        2      
+                         value shift        9      
+
+State 6:
+          value ::= * INTEGER
+          value ::= * FLOAT
+          value ::= * value PLUS value
+          value ::= value PLUS * value
+          value ::= * value MINUS value
+          value ::= * value TIMES value
+          value ::= * value DIVIDE value
+          value ::= * LPAREN value RPAREN
+          value ::= * MINUS value
+
+                       INTEGER shift-reduce 2      value ::= INTEGER
+                         FLOAT shift-reduce 3      value ::= FLOAT
+                         MINUS shift        1      
+                        LPAREN shift        2      
+                         value shift        10     
+
+State 7:
+          input ::= value * NEWLINE
+      (1) input ::= value *
+          value ::= value * PLUS value
+          value ::= value * MINUS value
+          value ::= value * TIMES value
+          value ::= value * DIVIDE value
+
+                             $ reduce       1      input ::= value
+                          PLUS shift        6      
+                         MINUS shift        5      
+                         TIMES shift        4      
+                        DIVIDE shift        3      
+                       NEWLINE shift        11     
+
+State 8:
+          value ::= value * PLUS value
+          value ::= value * MINUS value
+          value ::= value * TIMES value
+          value ::= value * DIVIDE value
+          value ::= LPAREN value * RPAREN
+
+                          PLUS shift        6      
+                         MINUS shift        5      
+                         TIMES shift        4      
+                        DIVIDE shift        3      
+                        RPAREN shift-reduce 8      value ::= LPAREN value RPAREN
+
+State 9:
+          value ::= value * PLUS value
+          value ::= value * MINUS value
+      (5) value ::= value MINUS value *
+          value ::= value * TIMES value
+          value ::= value * DIVIDE value
+
+                         TIMES shift        4      
+                        DIVIDE shift        3      
+                     {default} reduce       5      value ::= value MINUS value
+
+State 10:
+          value ::= value * PLUS value
+      (4) value ::= value PLUS value *
+          value ::= value * MINUS value
+          value ::= value * TIMES value
+          value ::= value * DIVIDE value
+
+                         TIMES shift        4      
+                        DIVIDE shift        3      
+                     {default} reduce       4      value ::= value PLUS value
+
+State 11:
+      (0) input ::= value NEWLINE *
+
+                             $ reduce       0      input ::= value NEWLINE
+
+----------------------------------------------------
+Symbols:
+The first-set of non-terminals is shown after the name.
+
+    0: $:
+    1: INTEGER
+    2: FLOAT
+    3: PLUS (precedence=1)
+    4: MINUS (precedence=1)
+    5: TIMES (precedence=2)
+    6: DIVIDE (precedence=2)
+    7: LPAREN
+    8: RPAREN
+    9: NEWLINE
+   10: ERROR
+   11: UMINUS (precedence=3)
+   12: value: INTEGER FLOAT MINUS LPAREN
+   13: input: INTEGER FLOAT MINUS LPAREN
+----------------------------------------------------
+Syntax-only Symbols:
+The following symbols never carry semantic content.
+
+$ PLUS MINUS TIMES DIVIDE LPAREN RPAREN NEWLINE ERROR UMINUS input
+----------------------------------------------------
+Rules:
+   0: input ::= value NEWLINE.
+   1: input ::= value.
+   2: value ::= INTEGER.
+   3: value ::= FLOAT.
+   4: value ::= value PLUS value. [PLUS precedence=1]
+   5: value ::= value MINUS value. [MINUS precedence=1]
+   6: value ::= value TIMES value. [TIMES precedence=2]
+   7: value ::= value DIVIDE value. [DIVIDE precedence=2]
+   8: value ::= LPAREN value RPAREN.
+   9: value ::= MINUS value. [UMINUS precedence=3]
