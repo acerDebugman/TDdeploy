@@ -11,7 +11,6 @@
 
 1. 部分指令需要区分 用户用 还是 xnoded 用
 
-
 ## 开发：
 
 1. 使用 libuv 进行任务管理，发送消息等
@@ -71,22 +70,19 @@ todo:
 49. kafka 性能 测试
 50. 测试文档中的测试用例 测试
 51. 每次带上用户名和密码，都应该重启 xnoded
-
+52. task, agent 修改名字需要判断名字是否已经存在，创建时候已经判断了，修改需要加此逻辑
+53. 增加 agent 的 cpp 测试用例
+54. 获取 mnode leader 的函数可能不对，需要再看看是不是应该使用 SDB_MNODE 这个键值！
 
 ### corner case:
 
 1. columan 不存在， null 值， > NULL 值这样的条件
 2. 
 
-
-
-
-
 ### 实现逻辑:
 
 1. mndXnode 里的 evaluateWalker 的 SHashObj 的 SValueNode 只支持 UBIGINT 和 BINARY 类型
 2. 
-
 
 todo:
 
@@ -148,8 +144,6 @@ source .venv/bin/activate
 pip3 install -r requirements.txt 
 ```
 
-
-
 执行 python 测试用例：
 
 ```
@@ -168,15 +162,12 @@ pytest cases/42-Xnode/test_xnode.py::TestXnode::test_show_primitives -v
 pytest -k "test_show_primitives" -v
 ```
 
-
 ```
 
 
 
 pytest cases/42-Xnode/test_xnode.py::TestXnode::test_sources_and_sinks_variants -v
 ```
-
-
 
 ### sql命令
 
@@ -190,7 +181,6 @@ create xnode task 't1' from 'mqtt://xxx' to database s1 with parser '{...}';
 create xnode task 't1' from 'pulsar://192.168.2.131:6650?agent=1&batch_size=1000&busy_threshold=100%&char_encoding=UTF_8&consumer_name=c1&group=1&health_check_window_in_second=0s&initial_position=Earliest&max_errors_in_window=10&max_queue_length=1000&read_concurrency=0&subscription=s1&timeout=0ms&topics=persistent://public/default/pt-zgc' to database testdb with parser '{"global":{"cache":{"keep_days":"30d","max_size":"1GB","rotate_count":100,"location":"","on_fail":"skip"},"archive":{"keep_days":"30d","max_size":"1GB","rotate_count":100,"location":"","on_fail":"rotate"},"database_connection_error":"cache","database_not_exist":"break","table_not_exist":"retry","primary_timestamp_overflow":"archive","primary_timestamp_null":"archive","primary_key_null":"archive","table_name_length_overflow":"archive","table_name_contains_illegal_char":{"replace_to":""},"variable_not_exist_in_table_name_template":{"replace_to":""},"field_name_not_found":"add_field","field_name_length_overflow":"archive","field_length_extend":true,"field_length_overflow":"archive","ingesting_error":"archive","connection_timeout_in_second":"30s"},"parse":{"value":{"json":""}},"model":{"name":"r${id}","using":"meters","tags":["groupid","location"],"columns":["ts","id","v_str"]},"mutate":[{"map":{"ts":{"cast":"ts","as":"TIMESTAMP(ms)"},"id":{"cast":"id","as":"BIGINT"},"v_str":{"cast":"v_str","as":"VARCHAR"},"groupid":{"cast":"groupid","as":"BIGINT"},"location":{"cast":"location","as":"VARCHAR"}}}]}';
 
 ```
-
 
 ```
 create xnode job on 1 with config '{"json":true}';
@@ -206,15 +196,11 @@ drop xnode job 3;
 
 ```
 
-
-
-
  alter xnode job:
 
 ```
 ALTER XNODE JOB 1 SET XNODE 1;
 ```
-
 
 当前 alter 语句不完整：
 
@@ -229,17 +215,12 @@ DB error: xnode task source and sink should not be NULL [0x80002600] (0.000195s)
 
 ```
 
-
 ```
 alter xnode job `<jid>`  // 这个 jid 必须是 整数；
 
 ```
 
-
-
-
 ### 测试数据
-
 
 ```
 
@@ -274,7 +255,6 @@ drop xnode task 't1';
 
 
 ```
-
 
 ```
 
@@ -749,8 +729,6 @@ xxxzgc *** where nodetype: 3, ast: {
 
 ```
 
-
-
 ```
 这个 语句的 `NULL` 竟然被定为 column ? 这种转义可以的！
 
@@ -847,22 +825,15 @@ xxxzgc *** node ast: {
 
 ```
 
-
-
 ## 问题
 
 1. 有时候需要重新 编辑一下 .h 头问题的内容，才会重新建索引，vscode 才不会报错
 2. 如果有改任何的 CMakeLists.txt ，就需要先 sh build.sh gen 以下，先产生新的配置文件！
 3. bnode 什么时候发送消息创建 mqtt 进程的？
 
-
-
-
-
-
 ## 有用的代码
 
-ast 的处理代码: 核心是 nodesStringToNode() 和 
+ast 的处理代码: 核心是 nodesStringToNode() 和
 
 ```
 static int32_t processAst(SMqTopicObj *topicObj, const char *ast) {
@@ -910,8 +881,6 @@ END:
 }
 ```
 
-
-
 ## 开发总结：
 
 1. show statement 里的内容不可以放到下面，要和 sysTableShowAdapter 里的定义一致。
@@ -958,5 +927,12 @@ END:
    ```
 
    ```
+5. 这个分支放了一些 rust 的项目的配置：feat/zgc-xnode-syntax-mock-xnoded， xnoded 是配置在 CMakefiles.txt 里的
+6. cases.task 的是配置  py 脚本的测试用例, 这块的测试用例主要是集成测试; pytest 的测试用例在 test/cases 下
+7. 
+
+
+
+
 
 xxx
