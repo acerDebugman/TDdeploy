@@ -141,7 +141,11 @@ python3 -m venv .venv
 # 激活
 source .venv/bin/activate
 
-pip3 install -r requirements.txt 
+# 使用uv
+# pip3 install -r requirements.txt 
+
+pip3 install uv
+uv pip install -r requirements.txt 
 ```
 
 执行 python 测试用例：
@@ -165,6 +169,9 @@ pytest -k "test_show_primitives" -v
 ```
 
 
+LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libasan.so.8 pytest cases/42-Xnode/test_xnode.py -q
+
+LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libasan.so.6 pytest cases/42-Xnode/test_xnode.py -q
 
 pytest cases/42-Xnode/test_xnode.py::TestXnode::test_sources_and_sinks_variants -v
 ```
@@ -219,6 +226,38 @@ DB error: xnode task source and sink should not be NULL [0x80002600] (0.000195s)
 alter xnode job `<jid>`  // 这个 jid 必须是 整数；
 
 ```
+
+
+
+### pytest 测试
+
+```
+另外是 pytest 执行LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libasan.so.8 pytest cases/42-Xnode/test_xnode.py -q 正常运行，但是运行几次后，突然再运行就报 connection error 之类的错误了，我看taosd什么都不启动了：
+
+修复方法： 删除 taosd 使用的数据目录，在 sim 里：
+(.venv) root@ha ~/zgc/TDengine/test (feat/agent-6646814636-main)$ rm -rf ../sim/*
+
+再执行九成功了：
+(.venv) root@ha ~/zgc/TDengine/test (feat/agent-6646814636-main)$ LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libasan.so.8 pytest cases/42-Xnode/test_xnode.py -q
+
+#debug 日志
+ LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libasan.so.6 pytest  --log-cli-level=DEBUG  cases/42-Xnode/test_xnode.py -q 
+
+```
+
+
+
+本地 docker:
+
+```
+ cd test
+ source .venv/bin/activate
+ LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libasan.so.6 pytest cases/42-Xnode/test_xnode.py -q
+```
+
+
+
+
 
 ### 测试数据
 
@@ -936,3 +975,17 @@ END:
 
 
 xxx
+
+   ```
+
+
+
+8. 内存泄漏的形式：
+   1. free(&name);  但是 name 是一个 char *name; 释放的地址就不对
+   2. 遗漏泄漏：指针数组：char *arr;  arr = calloc(10, sizeof(char *)); 结果只只放了 free(arr[0]); free(arr[1]); ... free(arr[N]); 忘了释放 arr: free(arr); 只释放了内容，没有释放容器！
+   3. 排查问题：test_xnode.py 的问题，只能一条一条的测试，二分法;  知道哪条 sql 后, 才能顺着入口 sql 继续梳理逻辑，用 gdb 单步调试排除
+
+
+
+
+
