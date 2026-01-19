@@ -2,8 +2,6 @@
 
 lemmon 语法和定义：
 
-
-
 ```
 %name Parse
 %token_prefix TK_
@@ -22,7 +20,7 @@ lemmon 语法和定义：
 %token PLUS.
 
 /* 最终表达式：手动 free 结果（A 的所有权已转移给我们） */
-program ::= expr(A).   { printf("result = %s\n", A); free(A); }
+program ::= expr(A).   { printf("result = %s\n", A); free(A); }   // ！！！这里 A 非常注意！最后一步需要我们自己释放！
 
 /* 数字规则：strdup(B) 复制一份，B 会被 Lemon 自动 free */
 expr(A) ::= NUM(B).    { A = strdup(B); }
@@ -186,3 +184,16 @@ $ valgrind --leak-check=full ./calc_str
 或者是在 LL(1) 后得到的 AST 进行 后序遍历，然后进行规约。
 
 2. 
+
+
+
+## 关联项目 TDengine：
+
+
+
+![image-20260112141215594](lemon.assets/image-20260112141215594.png)
+
+出错了，就必须自己释放；并且 ParseFree 里传入的是 taosAutoMemoryFree, 而不是 nodesDestoryNode() 函数，所以不回递归释放不全，抛出语法错误，需要自己调用 nodesDestoryNode 进行递归释放！
+
+
+

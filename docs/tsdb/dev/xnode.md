@@ -1,29 +1,22 @@
-```
-使用 libuv 库给我写一个使用例子，一端是c语言编写，一端是 rust 编写，rust 这块使用 libuv 的 uv_listen 启动监听，c 侧创建链接，并且发送消息
-
-
-
-
-
-```
-
 ## 待讨论
 
 1. 部分指令需要区分 用户用 还是 xnoded 用
 
 ## 开发：
 
-1. 使用 libuv 进行任务管理，发送消息等
-2. 测试 bnode，试一试 mqtt (低优先级)
-3. 
 
-todo:
+
+### todo:
 
 1. mqtt 模块代码理解 (done)
 2. xnode 启动，目前现在初始化 open 的时候启动，后续改为 mnode 切换的时候启动，(先最小实现, 熟悉后再改) (done)
 3. SXnode 结构体与 dnode 的总结构体关联上 (done)
-4. 理解 消息的回调 机制？怎么回调的？
-5. 测试 mnode 切换
+4. 理解 消息的回调 机制？怎么回调的？(done)
+   1. 再写文章理解
+
+5. 测试 mnode 切换 (done)
+   1. 不测试了，有问题再说
+
 6. create xnode 发送消息给 xnoded, 试一试 http 消息， 在 mndCreateXnode() 组装消息发送给 xnoded (done)
 7. 追一下 sql parser 模块，比如 TDMT_MND_CREATE_XNODE 怎么被发出来 (done)
 8. xmnd 到 xnoded 的消息接口要用 http 协议重写一下，这样方便复用现有的 curl 接口等 (done)
@@ -31,7 +24,9 @@ todo:
 10. 补全调用 create xnode jobs, show xnode jobs 功能 (done)
 11. create xnode task 的时候， via 默认值应该是 -1  (done)
 12. dnode 关闭也需要杀死 xnoded ,需要关联 dnoded 关闭流程 (done)
-13. 内存泄露测试：检查代码，看哪里还有内存泄露；压力测试 sql， 看内存是否会上涨！
+13. 内存泄露测试：检查代码，看哪里还有内存泄露；压力测试 sql， 看内存是否会上涨！ (done)
+    1. pytest 里的 python 框架，已经是 sql 重复执行的压力测试工具了
+
 14. alter 修改 xnode, xnode task, xnode job 的 status 等指令，都需要发送对应的 接口 给 xnoded (done)
 15. 删除 task 前需要先发送 stop task,然后删除关联 job (done)
 16. status 应该是可读的：stopped, running, failed, succeeded (done)
@@ -47,56 +42,64 @@ todo:
 26. sql 节点名称打印，for rebalance (done)
 27. 用户密码第二次设置是否更新？添加一个更新逻辑
 28. core dump 问题修复 (done)
-29. 测试用例, 自动化写到　python 文件中  ********
+29. 测试用例, 自动化写到　python 文件中  (done)
+    1. 使用 pytest 进行测试，可以使用 ai 帮忙产生对应的执行 sql
+
 30. unix socket 开发测试 (done)
 31. rebalance where clause (done)
 32. 删除 xnoded 测试项目 (done)
 33. 删除不存在节点的测试 (done)
 34. where支持：遍历所有的检查支持的 nodeType (done)
-35. 重复校验问题
-36. 编写c的测试用例: mndXnode.c 的内部函数
-37. rebalance for task 功能 xxx不做
-38. parAstCreater 前做 nodetype 和 expression type 的检查:  SValueNode 只支持 UBigInt 和 binary 类型
-39. contain 函数支持
-40. reason = NULL 的判断：literal 是 null,  且 UserAlias  以 \'  或者  \"  开头，就是字符串，否则就是 null 值， 用户输入的 NULL 会转为小写的 null， 改  valueNode 的 isNull 字段为 true; (done)
-41. operator 右侧必须是 valueNode 预处理  (done xxxx 思考后不需要)
-42. create_time 时间 where 支持对比 (done)
-43. 测试 kafka 性能
-44. taosx xnode 管理指令相关官网文档 (done)
-45. rebalance xnode jobs; 全量支持 (done)
-46. drain 模式节点没有设置为 drain (done)
-47. alter task 支持 name (done)
-48. agent 管理开发支持
-49. kafka 性能 测试
-50. 测试文档中的测试用例 测试
-51. 每次带上用户名和密码，都应该重启 xnoded
-52. task, agent 修改名字需要判断名字是否已经存在，创建时候已经判断了，修改需要加此逻辑
-53. 增加 agent 的 cpp 测试用例
-54. 获取 mnode leader 的函数可能不对，需要再看看是不是应该使用 SDB_MNODE 这个键值！
+35. 编写c的测试用例: mndXnode.c 的内部函数 (done)
+36. rebalance for task 功能 (done xxx不做)
+37. parAstCreater 前做 nodetype 和 expression type 的检查:  SValueNode 只支持 UBigInt 和 binary 类型
+38. contain 函数支持
+39. reason = NULL 的判断：literal 是 null,  且 UserAlias  以 \'  或者  \"  开头，就是字符串，否则就是 null 值， 用户输入的 NULL 会转为小写的 null， 改  valueNode 的 isNull 字段为 true; (done)
+40. operator 右侧必须是 valueNode 预处理  (done xxx思考后不需要)
+41. create_time 时间 where 支持对比 (done)
+42. 测试 kafka 性能 (done xxx不做)
+43. taosx xnode 管理指令相关官网文档 (done)
+44. rebalance xnode jobs; 全量支持 (done)
+45. drain 模式节点没有设置为 drain (done)
+46. alter task 支持 name (done)
+47. agent 管理开发支持 (done)
+48. 测试文档中的测试用例 测试 (done)
+49. 每次带上用户名和密码，都应该重启 xnoded (done xxx没必要的思考)
+50. task, agent 修改名字需要判断名字是否已经存在，创建时候已经判断了，修改需要加此逻辑 (done)
+51. 增加 agent 的 cpp 测试用例 (done)
+52. 获取 mnode leader 的函数可能不对，需要再看看是不是应该使用 SDB_MNODE 这个键值！(done)
+    1. 经过思考：所有的消息回调处理都在 mnode  的 leader 上执行，所以获取当前的 dnode id 就是 mnode 的 leader ID
+
+
+#### 20260112
+
+1. 动态 secret 产生发送给 xnoded
+2. task 的 labels 支持
+3. 
 
 ### corner case:
 
-1. columan 不存在， null 值， > NULL 值这样的条件
+1. column 不存在， null 值， > NULL 值这样的条件
 2. 
 
-### 实现逻辑:
+### 学习用例:
 
-1. mndXnode 里的 evaluateWalker 的 SHashObj 的 SValueNode 只支持 UBIGINT 和 BINARY 类型
-2. 
+1. mndXnode 里的 evaluateWalker 的 SHashObj 的 SValueNode 只支持 UBIGINT 和 BINARY 类型; binary 就是 char 类型
 
-todo:
-
-1. 测试 libuv 和 调用集成
+2. 测试 libuv 和 调用集成
    1. 测试 c 与  rust 使用 libuv 通信, 使用 http api 接口 （done）
-   2. 
-2. 
+
+3. 使用 libuv 进行任务管理，发送消息等 (done)
+
+4. 测试 bnode，试一试 mqtt (低优先级)
+
+
 
 当前 bnode 是通过：
 
 1. libuv 管理
 2. bnode 的功能是创建一个 mqtt 协议的服务，使 tsdb 的 topic 支持 mqtt, 其他的 mqtt 客户端可以直接连接 tsdb 的 mqtt 地址，直接获取数据工作
 3. libuv 是一个类似 tokio 的异步io 库，但是没有 tokio 的抽象好
-4. 
 
 目录：
 
@@ -115,6 +118,14 @@ source/libs/txnode/xnode/src/txnodeDaemon.c    // 启动的任务的，libuv 管
 整体流程：
 
 dmMain() -> dmInit() -> dmInitDnode() ->
+
+
+
+#### 20260112
+
+1. 梳理执行计划，sql rewrite 框架
+
+
 
 ## 测试
 
@@ -174,6 +185,9 @@ LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libasan.so.8 pytest cases/42-Xnode/test_xno
 LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libasan.so.6 pytest cases/42-Xnode/test_xnode.py -q
 
 pytest cases/42-Xnode/test_xnode.py::TestXnode::test_sources_and_sinks_variants -v
+
+
+LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libasan.so.6 pytest --log-cli-level=DEBUG cases/17-DataSubscription/02-Consume/test_tmq_vnode_split_dup_no_wal.py -N 3 --replica 3
 ```
 
 ### sql命令
@@ -193,9 +207,6 @@ create xnode task 't1' from 'pulsar://192.168.2.131:6650?agent=1&batch_size=1000
 create xnode job on 1 with config '{"json":true}';
 
 create xnode job on 1 with config '{"json":true}' status 'running';
-
-
-
 
 show xnode jobs
 
@@ -224,7 +235,6 @@ DB error: xnode task source and sink should not be NULL [0x80002600] (0.000195s)
 
 ```
 alter xnode job `<jid>`  // 这个 jid 必须是 整数；
-
 ```
 
 
@@ -253,6 +263,16 @@ alter xnode job `<jid>`  // 这个 jid 必须是 整数；
  cd test
  source .venv/bin/activate
  LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libasan.so.6 pytest cases/42-Xnode/test_xnode.py -q
+```
+
+
+
+#### TDengine 开发必须的 ci 用例
+
+```
+# 跑 error_code 的
+LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libasan.so.6 pytest --log-cli-level=DEBUG cases/81-Tools/01-Check/test_check_error_code.py -q
+
 ```
 
 
@@ -943,14 +963,15 @@ END:
    ```
    ./test/ci/check_void.sh -c test/ci/func.txt -f source/
 
+4.  日志里的编译指令:
+
+   主要是：   
 
    ```
-4. 日志里的编译指令:
-   主要是：
-
-   ```
-
    cmake .. -DBUILD_TEST=true -DBUILD_HTTPS=false -DBUILD_TOOLS=true -DCMAKE_BUILD_TYPE=Release && make -j10
+   ```
+
+   
 
    ```
 
@@ -965,26 +986,15 @@ END:
 
    ```
 
-   ```
 5. 这个分支放了一些 rust 的项目的配置：feat/zgc-xnode-syntax-mock-xnoded， xnoded 是配置在 CMakefiles.txt 里的
 6. cases.task 的是配置  py 脚本的测试用例, 这块的测试用例主要是集成测试; pytest 的测试用例在 test/cases 下
-7. 
-
-
-
-
-
-xxx
-
-   ```
-
-
 
 8. 内存泄漏的形式：
    1. free(&name);  但是 name 是一个 char *name; 释放的地址就不对
    2. 遗漏泄漏：指针数组：char *arr;  arr = calloc(10, sizeof(char *)); 结果只只放了 free(arr[0]); free(arr[1]); ... free(arr[N]); 忘了释放 arr: free(arr); 只释放了内容，没有释放容器！
    3. 排查问题：test_xnode.py 的问题，只能一条一条的测试，二分法;  知道哪条 sql 后, 才能顺着入口 sql 继续梳理逻辑，用 gdb 单步调试排除
    4.  cmd::= 顶级语法的报的语法错误，就需要释放资源：比如 with 等的资源，可能出错了，就没有再执行 资源释放了
+9. 序列化都是 len 个字节，但是反序列化的时候，需要加 +1 作为
 
 
 
