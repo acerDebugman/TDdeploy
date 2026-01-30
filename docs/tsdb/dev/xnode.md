@@ -13,9 +13,8 @@
 3. SXnode 结构体与 dnode 的总结构体关联上 (done)
 4. 理解 消息的回调 机制？怎么回调的？(done)
    1. 再写文章理解
-
-5. 测试 mnode 切换 (done)
-   1. 不测试了，有问题再说
+5. 测试 mnode 切换 (done）
+   1. 3.4.0.0 已测试,  docker 环境里可以正常切换！
 
 6. create xnode 发送消息给 xnoded, 试一试 http 消息， 在 mndCreateXnode() 组装消息发送给 xnoded (done)
 7. 追一下 sql parser 模块，比如 TDMT_MND_CREATE_XNODE 怎么被发出来 (done)
@@ -26,7 +25,6 @@
 12. dnode 关闭也需要杀死 xnoded ,需要关联 dnoded 关闭流程 (done)
 13. 内存泄露测试：检查代码，看哪里还有内存泄露；压力测试 sql， 看内存是否会上涨！ (done)
     1. pytest 里的 python 框架，已经是 sql 重复执行的压力测试工具了
-
 14. alter 修改 xnode, xnode task, xnode job 的 status 等指令，都需要发送对应的 接口 给 xnoded (done)
 15. 删除 task 前需要先发送 stop task,然后删除关联 job (done)
 16. status 应该是可读的：stopped, running, failed, succeeded (done)
@@ -44,7 +42,6 @@
 28. core dump 问题修复 (done)
 29. 测试用例, 自动化写到　python 文件中  (done)
     1. 使用 pytest 进行测试，可以使用 ai 帮忙产生对应的执行 sql
-
 30. unix socket 开发测试 (done)
 31. rebalance where clause (done)
 32. 删除 xnoded 测试项目 (done)
@@ -52,7 +49,7 @@
 34. where支持：遍历所有的检查支持的 nodeType (done)
 35. 编写c的测试用例: mndXnode.c 的内部函数 (done)
 36. rebalance for task 功能 (done xxx不做)
-37. parAstCreater 前做 nodetype 和 expression type 的检查:  SValueNode 只支持 UBigInt 和 binary 类型
+37. parAstCreater 前做 nodetype 和 expression type 的检查:  SValueNode 只支持 UBigInt 和 binary 类型 (done xxx不做)
 38. contain 函数支持
 39. reason = NULL 的判断：literal 是 null,  且 UserAlias  以 \'  或者  \"  开头，就是字符串，否则就是 null 值， 用户输入的 NULL 会转为小写的 null， 改  valueNode 的 isNull 字段为 true; (done)
 40. operator 右侧必须是 valueNode 预处理  (done xxx思考后不需要)
@@ -69,13 +66,21 @@
 51. 增加 agent 的 cpp 测试用例 (done)
 52. 获取 mnode leader 的函数可能不对，需要再看看是不是应该使用 SDB_MNODE 这个键值！(done)
     1. 经过思考：所有的消息回调处理都在 mnode  的 leader 上执行，所以获取当前的 dnode id 就是 mnode 的 leader ID
+53. 使用 token 接入代替用户名密码：token 是用户先创建，还是 mnode 里自行创建？当然是自行创建，并且应该有 root 权限的 token
 
 
 #### 20260112
 
-1. 动态 secret 产生发送给 xnoded
-2. task 的 labels 支持
-3. 
+1. 动态 secret 产生发送给 xnoded 
+2. task 的 labels 支持 (done)
+3. 日志 info, debug 传递给 xnoded (done)
+4. 多路径查找 xnoded 执行文件 (done)
+
+5. 如果 xnoded panic ，会引起 taosd 不断重启 xnoded, 并且看不到日志，因为这个日志是输出到 stdout 里的！所以 systemctl 的方式看不到这种日志
+
+
+
+
 
 ### corner case:
 
@@ -123,7 +128,14 @@ dmMain() -> dmInit() -> dmInitDnode() ->
 
 #### 20260112
 
-1. 梳理执行计划，sql rewrite 框架
+1. 梳理执行计划，sql rewrite 框架 (done)
+
+
+
+## blog
+
+1. 开发流程
+2. 
 
 
 
@@ -255,15 +267,31 @@ alter xnode job `<jid>`  // 这个 jid 必须是 整数；
 
 ```
 
+执行 pytest 前，必须要:
+
+```
+make install -j20  
+```
+
+因为 pytest 调用的还是 /usr/local/taos/driver  里的
+
 
 
 本地 docker:
+
+最后使用 kill 杀死 taosd 可以看到退出的 sanitizer 的信息，用 ctrl + c 的方式不行：
 
 ```
  cd test
  source .venv/bin/activate
  LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libasan.so.6 pytest cases/42-Xnode/test_xnode.py -q
+ 
+ LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libasan.so.6 pytest cases/42-Xnode/test_xnode.py::TestXnode::test_alter_token -q
+ 
+ LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libasan.so.6 pytest --log-cli-level=DEBUG cases/42-Xnode/test_xnode.py::TestXnode::test_alter_token -q
 ```
+
+
 
 
 
@@ -272,6 +300,7 @@ alter xnode job `<jid>`  // 这个 jid 必须是 整数；
 ```
 # 跑 error_code 的
 LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libasan.so.6 pytest --log-cli-level=DEBUG cases/81-Tools/01-Check/test_check_error_code.py -q
+
 
 ```
 
@@ -999,4 +1028,63 @@ END:
 
 
 
+
+9. xnoded 被 systemd 管理的问题：
+
+   xnoded 被 taosd 启动，但是都被 systemd 管理，所以如果 systemd 发送 kill 命令给进程组 id: `kill -TERM -<PGID>`  那么，xnoded 和 taosd 都会同时收到 kill 信号，但是 xnoded 退出快， taosd 走退出流程慢。xnoded 退出后，会被 taosd 马上拉起来，所以启动了新的进程；同时 taosd 杀死的是老的 xnoded 进程, 老的 xnoded 已经退出了，新的还没有创建，还没被 libuv 管理，所以很可能错开了，或者 老的退出逻辑卡死了，目前看老的退出进程卡死了：
+
+   ```
+   void xnodeMgmtStopXnoded(void) {
+     SXnodedData *pData = &xnodedGlobal;
+     xndInfo("stopping xnoded, need cleanup:%d, spawn err:%d, isStopped:%d", pData->needCleanUp, pData->spawnErr, atomic_load_32(&pData->isStopped));
+     if (!pData->needCleanUp || atomic_load_32(&pData->isStopped)) {
+       return;
+     }
+     atomic_store_32(&pData->isStopped, 1);
+     pData->needCleanUp = false;
+     xndInfo("xxxzgc ******* xnoded is cleaned up   111");
+     (void)uv_process_kill(&pData->process, SIGTERM);
+     xndInfo("xxxzgc ******* xnoded is cleaned up  2222222");
+     uv_barrier_destroy(&pData->barrier);                              // 这里以后就没有输出了
+     xndInfo("xxxzgc ******* xnoded is cleaned up  333333");
+   
+     if (uv_thread_join(&pData->thread) != 0) {
+       xndError("stop xnoded: failed to join xnoded thread");
+     }
+     xndInfo("xnoded is cleaned up");
+   
+     pData->isStarted = false;
+   
+     return;
+   }
+   ```
+
+   
+
+   ```
+   ps -eo pid,ppid,pgid,comm | grep your_process
+   
+   ps -eo pid,ppid,pgid,comm | grep taosd
+   ps -eo pid,ppid,pgid,comm | grep xnoded
+   ```
+
+
+
+systemctl stop 会杀死所有的在 cgroup 里的所有进程：
+
+```
+使用 systemctl stop 时行为完全不同！systemd 会管理服务整个控制组（cgroup）中的所有进程。
+systemctl stop 的默认行为
+
+
+子进程一定会被杀死的原因
+systemd 使用 cgroup 来管理服务的所有进程：
+复制
+/sys/fs/cgroup/systemd/system.slice/your-service.service/
+├── cgroup.procs    # 包含该服务所有进程的 PID
+└── ...
+当执行 systemctl stop 时：
+systemd 扫描 cgroup 中的所有进程
+逐个发送信号，确保没有孤儿进程存活
+```
 

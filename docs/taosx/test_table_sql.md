@@ -7,7 +7,6 @@ insert into d1 using meters tags(7, "California.PaloAlto") values(now(), 1.0, 10
 4. create database db vgroups 3 buffer 10 replica 3 keep 3650 duration 20;
 5. create stable meters(ts timestamp, current float, voltage int, phase float) tags(groupid int, location varchar(24))  ;
 
-
 select location, avg(current) from meters partition by location;
 select location, avg(current) from meters group by location partition by location, groupid;
 
