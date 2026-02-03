@@ -3,7 +3,7 @@
 git pull
 
 # for kafka
-#cargo run -p jira_case --bin ts5820main
+cargo run -p jira_case --bin ts5820main
 
 #RUST_LOG=info cargo run -p jira_case --bin jira_case
 
@@ -16,4 +16,4 @@ git pull
 #RUST_LOG=info cargo run -p jira_case --example pulsar_producer_tuya_loop
 
 # for pulsar
-RUST_LOG=info cargo run -p jira_case --example pulsar_producer_loop
+#RUST_LOG=info cargo run -p jira_case --example pulsar_producer_loop

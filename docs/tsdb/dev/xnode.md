@@ -75,8 +75,12 @@
 2. task 的 labels 支持 (done)
 3. 日志 info, debug 传递给 xnoded (done)
 4. 多路径查找 xnoded 执行文件 (done)
-
 5. 如果 xnoded panic ，会引起 taosd 不断重启 xnoded, 并且看不到日志，因为这个日志是输出到 stdout 里的！所以 systemctl 的方式看不到这种日志
+
+#### 20260203
+1.  tdinternal 长度问题开发, 目前最长只能到 59392
+
+
 
 
 
@@ -85,7 +89,12 @@
 ### corner case:
 
 1. column 不存在， null 值， > NULL 值这样的条件
-2. 
+
+
+
+
+
+
 
 ### 学习用例:
 

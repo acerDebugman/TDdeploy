@@ -11,7 +11,8 @@ pub async fn kafka_main() -> anyhow::Result<()> {
     //let kafka_addr = "172.19.0.6:9092"; // 替换为你的Kafka地址
     //let kafka_addr = "kafka:9092"; // 替换为你的Kafka地址
     // let kafka_addr = "172.20.0.3:9092"; // 替换为你的Kafka地址
-     let kafka_addr = "192.168.2.131:9092"; // 替换为你的Kafka地址
+    // let kafka_addr = "192.168.2.131:9092"; // 替换为你的Kafka地址
+    let kafka_addr = "192.168.2.158:9092"; // 替换为你的Kafka地址
     //let kafka_addr = "172.18.0.3:9092"; // 替换为你的Kafka地址
     let topic = "test-topic"; // 替换为你的topic
     // let topic = "test-topic3"; // 替换为你的topic
