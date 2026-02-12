@@ -78,7 +78,12 @@
 5. 如果 xnoded panic ，会引起 taosd 不断重启 xnoded, 并且看不到日志，因为这个日志是输出到 stdout 里的！所以 systemctl 的方式看不到这种日志
 
 #### 20260203
-1.  tdinternal 长度问题开发, 目前最长只能到 59392
+1.  tdinternal 长度问题开发, 目前最长只能到 59392 (done)
+    1.  错误，应该是整个 block 长度总的限制是 64k
+
+2.  mndXnode 里的 mError 应该修改为 mError
+
+
 
 
 
@@ -149,6 +154,22 @@ dmMain() -> dmInit() -> dmInitDnode() ->
 
 
 ## 测试
+
+
+
+4种 xnoded 重新启动的场景：
+
+1. create xnode
+   1. 退出是否清理 xnode 的 pid, socket 等信息
+2. alter set user pass
+3. system stop
+4. mnode 切换
+
+
+
+
+
+
 
 1. 创建 bnode
    ```
