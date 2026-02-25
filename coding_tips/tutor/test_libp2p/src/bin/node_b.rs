@@ -68,7 +68,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     info!("Starting Node B - P2P port: {}, HTTP port: {}", p2p_port, http_port);
 
     // Create identity
-    let local_key = identity::Keypair::generate_ed25519();
+    let local_key = generate_ed25519(17);
     let local_peer_id = local_key.public().to_peer_id();
     info!("Local PeerId: {}", local_peer_id);
 
@@ -316,4 +316,9 @@ struct Behaviour {
     request_response: cbor::Behaviour<P2PRequest, P2PResponse>,
     ping: ping::Behaviour,
     mdns: mdns::tokio::Behaviour,
+}
+fn generate_ed25519(secret_key_seed: u8) -> identity::Keypair {
+    let mut bytes = [0u8; 32];
+    bytes[0] = secret_key_seed;
+    identity::Keypair::ed25519_from_bytes(bytes).expect("only errors on wrong length")
 }

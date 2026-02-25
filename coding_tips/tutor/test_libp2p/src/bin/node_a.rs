@@ -153,7 +153,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         ..
                     })) => {
                         info!("[Identify] Identified peer: {} at {:?}", peer_id, info.listen_addrs);
-                        
+                        println!("xxxzgc ************** info: {:?}", info);
                         // Check if this is bootstrap node (has protocol /p2p-bootstrap)
                         let is_bootstrap = info.protocol_version == "/p2p-bootstrap/0.1.0";
                         if is_bootstrap {
