@@ -122,6 +122,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // Store discovered peers
     let mut discovered_peers: Vec<PeerId> = Vec::new();
     let mut connected_to_b = false;
+    let mut identified_node_b: Option<PeerId> = None;  // Track identified Node B
 
     // Main P2P loop
     loop {
@@ -184,18 +185,41 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             info!("[Identify] Discovered node B: {}", peer_id);
                             discovered_peers.push(peer_id);
                             
+                            // Track this as identified Node B
+                            identified_node_b = Some(peer_id);
+                            
                             // Add addresses to Kademlia
                             for addr in &info.listen_addrs {
                                 swarm.behaviour_mut().kademlia.add_address(&peer_id, addr.clone());
                             }
                             
-                            // Connect to this peer if it's not already connected
-                            if let Some(first_addr) = info.listen_addrs.first() {
+                            // Check if already connected to this peer
+                            let is_connected = swarm.is_connected(&peer_id);
+                            
+                            if is_connected {
+                                // Already connected, send request immediately
+                                connected_to_b = true;
+                                println!("[Identify] Already connected to node B, sending request...");
+                                
+                                let request = P2PRequest {
+                                    method: "greet".to_string(),
+                                    params: serde_json::json!({
+                                        "name": "Node A"
+                                    }),
+                                };
+                                
+                                println!("[Request] Sending first P2P request to {}: {:?}", peer_id, request);
+                                info!("[Request] Sending first P2P request to {}: {:?}", peer_id, request);
+                                let request_id = swarm.behaviour_mut().request_response.send_request(&peer_id, request);
+                                println!("[Request] Request sent with ID: {:?}", request_id);
+                            } else if let Some(first_addr) = info.listen_addrs.first() {
+                                // Not connected yet, dial first
                                 let dial_addr = first_addr.clone().with(Protocol::P2p(peer_id));
                                 println!("[Identify] Dialing node B at: {}", dial_addr);
                                 if let Err(e) = swarm.dial(dial_addr) {
                                     warn!("[Identify] Failed to dial node B: {:?}", e);
                                 }
+                                // Request will be sent in ConnectionEstablished event
                             }
                         }
                     }
@@ -206,6 +230,17 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 if is_new_peer {
                                     println!("[Kademlia]  -> New peer added: {}", peer);
                                     println!("[Kademlia]  -> Addresses: {:?}", addresses);
+                                    
+                                    // If this is not bootstrap and not ourselves, try to dial
+                                    if Some(peer) != bootstrap_peer_id && peer != local_peer_id && !connected_to_b {
+                                        if let Some(addr) = addresses.iter().next() {
+                                            let dial_addr = addr.clone().with(Protocol::P2p(peer));
+                                            println!("[Kademlia] Auto-dialing new peer at: {}", dial_addr);
+                                            if let Err(e) = swarm.dial(dial_addr) {
+                                                warn!("[Kademlia] Failed to dial new peer: {:?}", e);
+                                            }
+                                        }
+                                    }
                                 }
                             }
                             kad::Event::RoutablePeer { peer, address } => {
@@ -248,11 +283,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         println!("[Connection] Connected to peer: {} via {:?}", peer_id, endpoint);
                         info!("[Connection] Connected to peer: {} via {:?}", peer_id, endpoint);
                         
-                        // Check if this is node B (not bootstrap)
-                        if bootstrap_peer_id.map(|id| id != peer_id).unwrap_or(true) && !connected_to_b {
+                        // Only send request if:
+                        // 1. This peer has been identified as Node B (not bootstrap)
+                        // 2. We haven't sent request to Node B yet
+                        if identified_node_b == Some(peer_id) && !connected_to_b {
                             connected_to_b = true;
                             
-                            // Send a test request to node B
                             let request = P2PRequest {
                                 method: "greet".to_string(),
                                 params: serde_json::json!({
@@ -349,8 +385,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
             _ = tokio::time::sleep(Duration::from_secs(30)) => {
                 if bootstrap_connected && !connected_to_b {
                     println!("[Discovery] Attempting to discover peers via Kademlia...");
+                    println!("[Discovery] Current state: bootstrap_peer_id={:?}, identified_node_b={:?}, connected_to_b={}", 
+                        bootstrap_peer_id, identified_node_b, connected_to_b);
                     // Try to find peers close to our own peer_id
                     swarm.behaviour_mut().kademlia.get_closest_peers(local_peer_id);
+                } else if !bootstrap_connected {
+                    println!("[Discovery] Waiting for bootstrap connection...");
                 }
             }
         }
