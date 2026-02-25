@@ -6,7 +6,7 @@ use axum::{response::Json, routing::post, Router};
 use futures::StreamExt;
 use libp2p::{
     core::multiaddr::Protocol,
-    identify, identity, kad, noise, request_response::{self, cbor, ProtocolSupport},
+    identify, identity, kad, mdns, noise, ping, request_response::{self, cbor, ProtocolSupport},
     swarm::{NetworkBehaviour, SwarmEvent},
     tcp, yamux, Multiaddr, StreamProtocol,
 };
@@ -45,8 +45,12 @@ pub struct P2PResponse {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+    // Initialize tracing with default log level if RUST_LOG is not set
+    let env_filter = EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| EnvFilter::new("info"));
+    
     let _ = tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::from_default_env())
+        .with_env_filter(env_filter)
         .try_init();
 
     // Parse arguments
@@ -61,11 +65,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .unwrap_or(8080u16);
     let bootstrap_addr = args.get(3).cloned();
 
+    println!("Starting Node B - P2P port: {}, HTTP port: {}", p2p_port, http_port);
     info!("Starting Node B - P2P port: {}, HTTP port: {}", p2p_port, http_port);
 
     // Create identity
     let local_key = identity::Keypair::generate_ed25519();
     let local_peer_id = local_key.public().to_peer_id();
+    println!("Local PeerId: {}", local_peer_id);
     info!("Local PeerId: {}", local_peer_id);
 
     // Setup request-response protocol - use string protocol name
@@ -90,6 +96,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 key.public(),
             )),
             request_response: rr_behaviour,
+            ping: ping::Behaviour::new(ping::Config::new()),
+            mdns: mdns::tokio::Behaviour::new(mdns::Config::default(), local_peer_id)
+                .expect("Failed to create mDNS behaviour"),
         })?
         .with_swarm_config(|cfg| cfg.with_idle_connection_timeout(Duration::from_secs(60)))
         .build();
@@ -101,10 +110,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
     swarm.listen_on(listen_addr)?;
 
     // Connect to bootstrap node
-    if let Some(addr) = bootstrap_addr {
+    if let Some(addr) = bootstrap_addr.clone() {
         let bootstrap_multiaddr: Multiaddr = addr.parse()?;
+        println!("Connecting to bootstrap node: {}", bootstrap_multiaddr);
         info!("Connecting to bootstrap node: {}", bootstrap_multiaddr);
         swarm.dial(bootstrap_multiaddr)?;
+    } else {
+        println!("Warning: No bootstrap address provided");
     }
 
     // Start HTTP server
@@ -113,6 +125,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let http_addr = SocketAddr::from(([0, 0, 0, 0], http_port));
     let http_listener = tokio::net::TcpListener::bind(http_addr).await?;
+    println!("HTTP server listening on http://{}", http_addr);
     info!("HTTP server listening on http://{}", http_addr);
 
     tokio::spawn(async move {
@@ -202,6 +215,27 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     SwarmEvent::Behaviour(BehaviourEvent::Kademlia(event)) => {
                         info!("Kademlia event: {:?}", event);
                     }
+                    SwarmEvent::Behaviour(BehaviourEvent::Mdns(mdns::Event::Discovered(peers))) => {
+                        for (peer_id, addr) in peers {
+                            info!("[mDNS] Discovered peer {} at {}", peer_id, addr);
+                            swarm.behaviour_mut().kademlia.add_address(&peer_id, addr.clone());
+                        }
+                    }
+                    SwarmEvent::Behaviour(BehaviourEvent::Mdns(mdns::Event::Expired(peers))) => {
+                        for (peer_id, addr) in peers {
+                            info!("[mDNS] Peer expired {} at {}", peer_id, addr);
+                        }
+                    }
+                    SwarmEvent::Behaviour(BehaviourEvent::Ping(event)) => {
+                        match event {
+                            ping::Event { peer, result: Ok(rtt), .. } => {
+                                tracing::debug!("Ping {} rtt: {:?}", peer, rtt);
+                            }
+                            ping::Event { peer, result: Err(e), .. } => {
+                                info!("Ping {} failed: {:?}", peer, e);
+                            }
+                        }
+                    }
                     SwarmEvent::NewListenAddr { address, .. } => {
                         info!("P2P listening on {}", address);
                         info!("Node B multiaddr: {}/p2p/{}", address, swarm.local_peer_id());
@@ -284,4 +318,6 @@ struct Behaviour {
     kademlia: kad::Behaviour<kad::store::MemoryStore>,
     identify: identify::Behaviour,
     request_response: cbor::Behaviour<P2PRequest, P2PResponse>,
+    ping: ping::Behaviour,
+    mdns: mdns::tokio::Behaviour,
 }

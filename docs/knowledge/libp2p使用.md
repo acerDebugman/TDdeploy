@@ -45,6 +45,25 @@ let mut swarm = libp2p::SwarmBuilder::with_new_identity()
 
 
 
+swarm.select_next_som() 得到的 event， 其实应该是要映射到每个自定义的 Behavior 的内部的 event 的，不然没法知道某个消息是属于哪一个模块的！
+
+```
+ loop {
+        tokio::select! {
+            event = swarm.select_next_some() => {
+                match event {
+                    SwarmEvent::Behaviour(BehaviourEvent::Identify(identify::Event::Received {
+                        peer_id,
+                        info,
+                        ..
+```
+
+
+
+
+
+
+
 ## 核心概念
 
 ```
@@ -77,7 +96,7 @@ let mut swarm = libp2p::SwarmBuilder::with_new_identity()
 
 - **Upgrading（升级机制）**：连接建立后自动叠加安全层（Noise）和多路复用层（Yamux）
 
-  ```
+```
   TCP 连接 → Noise 加密通道 → Yamux 多路复用器 → 应用数据流
   ```
 
@@ -137,7 +156,7 @@ let mut swarm = libp2p::SwarmBuilder::with_new_identity()
 ### 13. Connection Gating（连接门禁）
 
 - 安全机制：允许开发者定义"允许/拒绝"哪些节点连接（基于 IP 黑名单、Peer ID 白名单等）
-```
+  ```
 
 
 
