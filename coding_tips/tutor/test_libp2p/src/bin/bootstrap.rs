@@ -11,12 +11,17 @@ use libp2p::{
     swarm::{NetworkBehaviour, SwarmEvent},
     tcp, yamux,
 };
+use tracing::{info, warn};
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+    // Initialize tracing with default log level "info" if RUST_LOG is not set
+    let env_filter = EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| EnvFilter::new("info"));
+    
     let _ = tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::from_default_env())
+        .with_env_filter(env_filter)
         .try_init();
 
     let opt = Opt::parse();
@@ -25,7 +30,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let local_key: identity::Keypair = generate_ed25519(opt.secret_key_seed);
     let local_peer_id = local_key.public().to_peer_id();
     
-    println!("Bootstrap Node PeerId: {local_peer_id}");
+    info!("Bootstrap Node PeerId: {local_peer_id}");
 
     // Create relay behaviour config
     let relay_config = relay::Config::default();
@@ -89,20 +94,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .with(Protocol::QuicV1);
     swarm.listen_on(listen_addr_quic)?;
 
-    println!("\n=== Bootstrap Node Started ===");
-    println!("PeerId: {local_peer_id}");
-    println!("TCP Port: {}", opt.port);
-    println!("QUIC Port: {}", opt.port);
-    println!("\nFeatures enabled:");
-    println!("  - Kademlia DHT (node discovery)");
-    println!("  - Relay Server (circuit relay)");
-    println!("  - AutoNAT Server (NAT detection)");
-    println!("  - Identify Protocol");
-    println!("  - Ping Protocol");
-    println!("\nConnection strings:");
-    println!("  TCP:  /ip4/<ip>/tcp/{}/p2p/{}", opt.port, local_peer_id);
-    println!("  QUIC: /ip4/<ip>/udp/{}/quic-v1/p2p/{}", opt.port, local_peer_id);
-    println!("==============================\n");
+    info!("=== Bootstrap Node Started ===");
+    info!("PeerId: {local_peer_id}");
+    info!("TCP Port: {}", opt.port);
+    info!("QUIC Port: {}", opt.port);
+    info!("Features: Kademlia DHT, Relay Server, AutoNAT Server, Identify, Ping");
+    info!("TCP: /ip4/<ip>/tcp/{}/p2p/{}", opt.port, local_peer_id);
+    info!("QUIC: /ip4/<ip>/udp/{}/quic-v1/p2p/{}", opt.port, local_peer_id);
 
     loop {
         match swarm.next().await.expect("Infinite Stream.") {
@@ -112,13 +110,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     info,
                     ..
                 }) => {
-                    println!("[Identify] Peer {} identified, protocol version: {:?}, agent: {:?}", 
+                    info!("[Identify] Peer {} identified, protocol version: {:?}, agent: {:?}", 
                         peer_id, 
                         info.protocol_version,
                         info.agent_version
                     );
-                    println!("  Listen addrs: {:?}", info.listen_addrs);
-                    println!("  Observed addr: {:?}", info.observed_addr);
+                    info!("[Identify] Listen addrs: {:?}", info.listen_addrs);
+                    info!("[Identify] Observed addr: {:?}", info.observed_addr);
                     
                     for addr in &info.listen_addrs {
                         swarm.behaviour_mut().kademlia.add_address(&peer_id, addr.clone());
@@ -127,24 +125,23 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     swarm.behaviour_mut().kademlia.add_address(&peer_id, info.observed_addr.clone());
                 }
                 BehaviourEvent::Identify(identify::Event::Sent { peer_id, .. }) => {
-                    println!("[Identify] Sent identify info to {}", peer_id);
+                    info!("[Identify] Sent identify info to {}", peer_id);
                 }
                 BehaviourEvent::Identify(other) => {
                     tracing::debug!("[Identify] Other event: {:?}", other);
                 }
-                BehaviourEvent::Kademlia(kad::Event::RoutingUpdated { peer, is_new_peer, addresses, bucket_range, .. }) => {
-                    println!("[Kademlia] Routing updated: peer={}", peer);
+                BehaviourEvent::Kademlia(kad::Event::RoutingUpdated { peer, is_new_peer, addresses, .. }) => {
                     if is_new_peer {
-                        println!("  -> New peer added to routing table");
+                        info!("[Kademlia] New peer added: {}, addresses: {:?}", peer, addresses);
+                    } else {
+                        info!("[Kademlia] Routing updated: peer={}", peer);
                     }
-                    println!("  Addresses: {:?}", addresses);
-                    println!("  Bucket range: {:?}", bucket_range);
                 }
                 BehaviourEvent::Kademlia(kad::Event::UnroutablePeer { peer, .. }) => {
-                    println!("[Kademlia] Peer {} is unroutable", peer);
+                    info!("[Kademlia] Peer {} is unroutable", peer);
                 }
                 BehaviourEvent::Kademlia(kad::Event::RoutablePeer { peer, address, .. }) => {
-                    println!("[Kademlia] Peer {} is routable via {}", peer, address);
+                    info!("[Kademlia] Peer {} is routable via {}", peer, address);
                 }
                 BehaviourEvent::Kademlia(other) => {
                     tracing::debug!("[Kademlia] Other event: {:?}", other);
@@ -163,7 +160,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             result: Err(e),
                             connection,
                         } => {
-                            println!("[Ping] {} failed: {:?} (conn: {:?})", peer, e, connection);
+                            warn!("[Ping] {} failed: {:?} (conn: {:?})", peer, e, connection);
                         }
                     }
                 }
@@ -171,26 +168,26 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     match event {
                         relay::Event::ReservationReqAccepted { src_peer_id, renewed, .. } => {
                             if renewed {
-                                println!("[Relay] Reservation renewed for {}", src_peer_id);
+                                info!("[Relay] Reservation renewed for {}", src_peer_id);
                             } else {
-                                println!("[Relay] New reservation accepted from {}", src_peer_id);
+                                info!("[Relay] New reservation accepted from {}", src_peer_id);
                             }
                         }
                         relay::Event::ReservationReqDenied { src_peer_id, .. } => {
-                            println!("[Relay] Reservation denied for {}", src_peer_id);
+                            warn!("[Relay] Reservation denied for {}", src_peer_id);
                         }
                         relay::Event::ReservationTimedOut { src_peer_id, .. } => {
-                            println!("[Relay] Reservation timed out for {}", src_peer_id);
+                            info!("[Relay] Reservation timed out for {}", src_peer_id);
                         }
                         relay::Event::CircuitReqAccepted { src_peer_id, dst_peer_id, .. } => {
-                            println!("[Relay] Circuit established: {} -> {}", src_peer_id, dst_peer_id);
+                            info!("[Relay] Circuit established: {} -> {}", src_peer_id, dst_peer_id);
                         }
                         relay::Event::CircuitReqDenied { src_peer_id, dst_peer_id, .. } => {
-                            println!("[Relay] Circuit denied: {} -> {}", src_peer_id, dst_peer_id);
+                            warn!("[Relay] Circuit denied: {} -> {}", src_peer_id, dst_peer_id);
                         }
                         relay::Event::CircuitClosed { src_peer_id, dst_peer_id, error, .. } => {
                             if let Some(err) = error {
-                                println!("[Relay] Circuit closed with error: {} -> {}, error: {:?}", 
+                                warn!("[Relay] Circuit closed with error: {} -> {}, error: {:?}", 
                                     src_peer_id, dst_peer_id, err);
                             } else {
                                 tracing::debug!("[Relay] Circuit closed: {} -> {}", src_peer_id, dst_peer_id);
@@ -206,13 +203,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         autonat::Event::InboundProbe(event) => {
                             match event {
                                 autonat::InboundProbeEvent::Request { peer, .. } => {
-                                    println!("[AutoNAT] Inbound probe request from {}", peer);
+                                    info!("[AutoNAT] Inbound probe request from {}", peer);
                                 }
                                 autonat::InboundProbeEvent::Response { peer, address, .. } => {
-                                    println!("[AutoNAT] Inbound probe response to {}, address: {}", peer, address);
+                                    info!("[AutoNAT] Inbound probe response to {}, address: {}", peer, address);
                                 }
                                 autonat::InboundProbeEvent::Error { peer, error, .. } => {
-                                    println!("[AutoNAT] Inbound probe error from {}: {:?}", peer, error);
+                                    warn!("[AutoNAT] Inbound probe error from {}: {:?}", peer, error);
                                 }
                             }
                         }
@@ -220,40 +217,40 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             tracing::debug!("[AutoNAT] Outbound probe: {:?}", event);
                         }
                         autonat::Event::StatusChanged { old, new } => {
-                            println!("[AutoNAT] Status changed: {:?} -> {:?}", old, new);
+                            info!("[AutoNAT] Status changed: {:?} -> {:?}", old, new);
                         }
                     }
                 }
             },
             SwarmEvent::NewListenAddr { address, .. } => {
-                println!("[Swarm] Listening on {}", address);
+                info!("[Swarm] Listening on {}", address);
             }
             SwarmEvent::NewExternalAddrOfPeer { peer_id, address } => {
-                println!("[Swarm] New external address for {}: {}", peer_id, address);
+                info!("[Swarm] New external address for {}: {}", peer_id, address);
             }
             SwarmEvent::IncomingConnection { send_back_addr, local_addr, .. } => {
-                println!("[Swarm] Incoming connection from {} (local: {})", send_back_addr, local_addr);
+                info!("[Swarm] Incoming connection from {} (local: {})", send_back_addr, local_addr);
             }
             SwarmEvent::ConnectionEstablished { peer_id, endpoint, num_established, .. } => {
-                println!("[Swarm] Connected to {} via {:?} (total: {})", 
+                info!("[Swarm] Connected to {} via {:?} (total: {})", 
                     peer_id, endpoint, num_established);
             }
             SwarmEvent::ConnectionClosed { peer_id, cause, num_established, .. } => {
                 let cause_str = cause.map(|c| format!("{:?}", c)).unwrap_or_else(|| "normal".to_string());
-                println!("[Swarm] Disconnected from {}: {} (remaining: {})", 
+                info!("[Swarm] Disconnected from {}: {} (remaining: {})", 
                     peer_id, cause_str, num_established);
             }
             SwarmEvent::ExternalAddrConfirmed { address } => {
-                println!("[Swarm] External address confirmed: {}", address);
+                info!("[Swarm] External address confirmed: {}", address);
             }
             SwarmEvent::ExternalAddrExpired { address } => {
-                println!("[Swarm] External address expired: {}", address);
+                info!("[Swarm] External address expired: {}", address);
             }
             SwarmEvent::ListenerClosed { addresses, reason, .. } => {
-                println!("[Swarm] Listener closed: {:?}, reason: {:?}", addresses, reason);
+                warn!("[Swarm] Listener closed: {:?}, reason: {:?}", addresses, reason);
             }
             SwarmEvent::ListenerError { error, .. } => {
-                eprintln!("[Swarm] Listener error: {:?}", error);
+                warn!("[Swarm] Listener error: {:?}", error);
             }
             other => {
                 tracing::trace!("[Swarm] Other event: {:?}", other);

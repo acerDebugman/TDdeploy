@@ -11,12 +11,17 @@ use libp2p::{
   swarm::{NetworkBehaviour, SwarmEvent},
   tcp, yamux,
 };
+use tracing::{info};
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+  // Initialize tracing with default log level "info" if RUST_LOG is not set
+  let env_filter = EnvFilter::try_from_default_env()
+      .unwrap_or_else(|_| EnvFilter::new("info"));
+  
   let _ = tracing_subscriber::fmt()
-      .with_env_filter(EnvFilter::from_default_env())
+      .with_env_filter(env_filter)
       .try_init();
 
   let opt = Opt::parse();
@@ -61,7 +66,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
       .with(Protocol::QuicV1);
   swarm.listen_on(listen_addr_quic)?;
 
-  println!("Local PeerId: {:?}", swarm.local_peer_id());
+  info!("Local PeerId: {:?}", swarm.local_peer_id());
   loop {
       match swarm.next().await.expect("Infinite Stream.") {
           SwarmEvent::Behaviour(event) => {
@@ -73,10 +78,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
                   swarm.add_external_address(observed_addr.clone());
               }
 
-              println!("xxxzgc: {event:?}")
+              info!("xxxzgc: {event:?}")
           }
           SwarmEvent::NewListenAddr { address, .. } => {
-              println!("Listening on {address:?}");
+              info!("Listening on {address:?}");
           }
           _ => {}
       }

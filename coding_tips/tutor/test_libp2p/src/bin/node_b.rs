@@ -11,7 +11,7 @@ use libp2p::{
     tcp, yamux, Multiaddr, StreamProtocol,
 };
 use serde::{Deserialize, Serialize};
-use tracing::{info};
+use tracing::{info, warn};
 use tracing_subscriber::EnvFilter;
 
 // HTTP API request/response types
@@ -65,13 +65,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .unwrap_or(8080u16);
     let bootstrap_addr = args.get(3).cloned();
 
-    println!("Starting Node B - P2P port: {}, HTTP port: {}", p2p_port, http_port);
     info!("Starting Node B - P2P port: {}, HTTP port: {}", p2p_port, http_port);
 
     // Create identity
     let local_key = identity::Keypair::generate_ed25519();
     let local_peer_id = local_key.public().to_peer_id();
-    println!("Local PeerId: {}", local_peer_id);
     info!("Local PeerId: {}", local_peer_id);
 
     // Setup request-response protocol - use string protocol name
@@ -112,11 +110,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // Connect to bootstrap node
     if let Some(addr) = bootstrap_addr.clone() {
         let bootstrap_multiaddr: Multiaddr = addr.parse()?;
-        println!("Connecting to bootstrap node: {}", bootstrap_multiaddr);
         info!("Connecting to bootstrap node: {}", bootstrap_multiaddr);
         swarm.dial(bootstrap_multiaddr)?;
     } else {
-        println!("Warning: No bootstrap address provided");
+        warn!("No bootstrap address provided");
     }
 
     // Start HTTP server
@@ -125,7 +122,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let http_addr = SocketAddr::from(([0, 0, 0, 0], http_port));
     let http_listener = tokio::net::TcpListener::bind(http_addr).await?;
-    println!("HTTP server listening on http://{}", http_addr);
     info!("HTTP server listening on http://{}", http_addr);
 
     tokio::spawn(async move {

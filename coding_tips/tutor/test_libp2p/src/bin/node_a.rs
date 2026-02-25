@@ -45,13 +45,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // Support direct connection to node_b
     let target_node_b_addr = args.get(3).cloned();
 
-    println!("Starting Node A - P2P port: {}", p2p_port);
     info!("Starting Node A - P2P port: {}", p2p_port);
 
     // Create identity
     let local_key = identity::Keypair::generate_ed25519();
     let local_peer_id = local_key.public().to_peer_id();
-    println!("Local PeerId: {}", local_peer_id);
     info!("Local PeerId: {}", local_peer_id);
 
     // Setup request-response protocol - use string protocol name
@@ -95,22 +93,21 @@ async fn main() -> Result<(), Box<dyn Error>> {
     
     if let Some(addr) = bootstrap_addr.clone() {
         let bootstrap_multiaddr: Multiaddr = addr.parse()?;
-        println!("Connecting to bootstrap node: {}", bootstrap_multiaddr);
         info!("Connecting to bootstrap node: {}", bootstrap_multiaddr);
         swarm.dial(bootstrap_multiaddr)?;
     } else {
-        println!("Warning: No bootstrap address provided, will rely on mDNS discovery");
+        warn!("No bootstrap address provided, will rely on mDNS discovery");
     }
 
     // Direct dial to node_b if address provided
     if let Some(addr_str) = target_node_b_addr {
-        println!("Will dial node B directly at: {}", addr_str);
+        info!("Will dial node B directly at: {}", addr_str);
         match addr_str.parse::<Multiaddr>() {
             Ok(addr) => {
                 if let Err(e) = swarm.dial(addr.clone()) {
                     warn!("Failed to dial node B: {:?}", e);
                 } else {
-                    println!("Dialing node B at {}", addr);
+                    info!("Dialing node B at {}", addr);
                 }
             }
             Err(e) => {
@@ -131,7 +128,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 match event {
                     SwarmEvent::Behaviour(BehaviourEvent::Mdns(mdns::Event::Discovered(peers))) => {
                         for (peer_id, addr) in peers {
-                            println!("[mDNS] Discovered peer {} at {}", peer_id, addr);
                             info!("[mDNS] Discovered peer {} at {}", peer_id, addr);
                             
                             if peer_id != local_peer_id && !connected_to_b {
@@ -140,7 +136,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 
                                 // Try to dial
                                 let dial_addr = addr.with(Protocol::P2p(peer_id));
-                                println!("[mDNS] Dialing discovered peer at {}", dial_addr);
                                 if let Err(e) = swarm.dial(dial_addr) {
                                     warn!("[mDNS] Failed to dial peer: {:?}", e);
                                 }
@@ -149,7 +144,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     }
                     SwarmEvent::Behaviour(BehaviourEvent::Mdns(mdns::Event::Expired(peers))) => {
                         for (peer_id, addr) in peers {
-                            println!("[mDNS] Peer expired {} at {}", peer_id, addr);
+                            info!("[mDNS] Peer expired {} at {}", peer_id, addr);
                         }
                     }
                     SwarmEvent::Behaviour(BehaviourEvent::Identify(identify::Event::Received {
@@ -157,13 +152,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         info,
                         ..
                     })) => {
-                        println!("[Identify] Identified peer: {} at {:?}", peer_id, info.listen_addrs);
                         info!("[Identify] Identified peer: {} at {:?}", peer_id, info.listen_addrs);
                         
                         // Check if this is bootstrap node (has protocol /p2p-bootstrap)
                         let is_bootstrap = info.protocol_version == "/p2p-bootstrap/0.1.0";
                         if is_bootstrap {
-                            println!("[Identify] Connected to bootstrap node: {}", peer_id);
                             info!("[Identify] Connected to bootstrap node: {}", peer_id);
                             bootstrap_peer_id = Some(peer_id);
                             bootstrap_connected = true;
@@ -174,14 +167,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             }
                             
                             // Start a Kademlia bootstrap to discover other peers
-                            println!("[Kademlia] Starting bootstrap to discover peers...");
+                            info!("[Kademlia] Starting bootstrap to discover peers...");
                             if let Err(e) = swarm.behaviour_mut().kademlia.bootstrap() {
-                                println!("[Kademlia] Bootstrap failed: {:?}", e);
+                                warn!("[Kademlia] Bootstrap failed: {:?}", e);
                             }
                             
                         } else if peer_id != local_peer_id && !connected_to_b {
                             // This is a regular node, likely node B
-                            println!("[Identify] Discovered node B: {}", peer_id);
                             info!("[Identify] Discovered node B: {}", peer_id);
                             discovered_peers.push(peer_id);
                             
@@ -199,7 +191,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             if is_connected {
                                 // Already connected, send request immediately
                                 connected_to_b = true;
-                                println!("[Identify] Already connected to node B, sending request...");
+                                info!("[Identify] Already connected to node B, sending request...");
                                 
                                 let request = P2PRequest {
                                     method: "greet".to_string(),
@@ -208,14 +200,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                     }),
                                 };
                                 
-                                println!("[Request] Sending first P2P request to {}: {:?}", peer_id, request);
                                 info!("[Request] Sending first P2P request to {}: {:?}", peer_id, request);
                                 let request_id = swarm.behaviour_mut().request_response.send_request(&peer_id, request);
-                                println!("[Request] Request sent with ID: {:?}", request_id);
+                                info!("[Request] Request sent with ID: {:?}", request_id);
                             } else if let Some(first_addr) = info.listen_addrs.first() {
                                 // Not connected yet, dial first
                                 let dial_addr = first_addr.clone().with(Protocol::P2p(peer_id));
-                                println!("[Identify] Dialing node B at: {}", dial_addr);
                                 if let Err(e) = swarm.dial(dial_addr) {
                                     warn!("[Identify] Failed to dial node B: {:?}", e);
                                 }
@@ -226,16 +216,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     SwarmEvent::Behaviour(BehaviourEvent::Kademlia(event)) => {
                         match event {
                             kad::Event::RoutingUpdated { peer, is_new_peer, addresses, .. } => {
-                                println!("[Kademlia] Routing updated: peer={}", peer);
+                                info!("[Kademlia] Routing updated: peer={}", peer);
                                 if is_new_peer {
-                                    println!("[Kademlia]  -> New peer added: {}", peer);
-                                    println!("[Kademlia]  -> Addresses: {:?}", addresses);
+                                    info!("[Kademlia] New peer added: {}, addresses: {:?}", peer, addresses);
                                     
                                     // If this is not bootstrap and not ourselves, try to dial
                                     if Some(peer) != bootstrap_peer_id && peer != local_peer_id && !connected_to_b {
                                         if let Some(addr) = addresses.iter().next() {
                                             let dial_addr = addr.clone().with(Protocol::P2p(peer));
-                                            println!("[Kademlia] Auto-dialing new peer at: {}", dial_addr);
                                             if let Err(e) = swarm.dial(dial_addr) {
                                                 warn!("[Kademlia] Failed to dial new peer: {:?}", e);
                                             }
@@ -244,31 +232,30 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 }
                             }
                             kad::Event::RoutablePeer { peer, address } => {
-                                println!("[Kademlia] Routable peer discovered: {} at {}", peer, address);
+                                info!("[Kademlia] Routable peer discovered: {} at {}", peer, address);
                                 // Try to connect to routable peers (potential node B)
                                 if Some(peer) != bootstrap_peer_id && peer != local_peer_id && !connected_to_b {
                                     let dial_addr = address.with(Protocol::P2p(peer));
-                                    println!("[Kademlia] Auto-dialing peer at: {}", dial_addr);
                                     if let Err(e) = swarm.dial(dial_addr) {
                                         warn!("[Kademlia] Failed to dial peer: {:?}", e);
                                     }
                                 }
                             }
                             kad::Event::UnroutablePeer { peer } => {
-                                println!("[Kademlia] Peer {} is unroutable", peer);
+                                info!("[Kademlia] Peer {} is unroutable", peer);
                             }
                             kad::Event::OutboundQueryProgressed { result, .. } => {
                                 match result {
                                     kad::QueryResult::Bootstrap(Ok(_)) => {
-                                        println!("[Kademlia] Bootstrap completed");
+                                        info!("[Kademlia] Bootstrap completed");
                                     }
                                     kad::QueryResult::Bootstrap(Err(e)) => {
-                                        println!("[Kademlia] Bootstrap failed: {:?}", e);
+                                        warn!("[Kademlia] Bootstrap failed: {:?}", e);
                                     }
                                     kad::QueryResult::GetClosestPeers(Ok(result)) => {
-                                        println!("[Kademlia] Found {} closest peers", result.peers.len());
+                                        info!("[Kademlia] Found {} closest peers", result.peers.len());
                                         for peer in &result.peers {
-                                            println!("[Kademlia]  -> Closest peer: {:?}", peer);
+                                            info!("[Kademlia] Closest peer: {:?}", peer);
                                         }
                                     }
                                     _ => {}
@@ -280,7 +267,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         }
                     }
                     SwarmEvent::ConnectionEstablished { peer_id, endpoint, .. } => {
-                        println!("[Connection] Connected to peer: {} via {:?}", peer_id, endpoint);
                         info!("[Connection] Connected to peer: {} via {:?}", peer_id, endpoint);
                         
                         // Only send request if:
@@ -296,14 +282,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 }),
                             };
                             
-                            println!("[Request] Sending first P2P request to {}: {:?}", peer_id, request);
                             info!("[Request] Sending first P2P request to {}: {:?}", peer_id, request);
                             let request_id = swarm.behaviour_mut().request_response.send_request(&peer_id, request);
-                            println!("[Request] Request sent with ID: {:?}", request_id);
+                            info!("[Request] Request sent with ID: {:?}", request_id);
                         }
                     }
                     SwarmEvent::ConnectionClosed { peer_id, cause, .. } => {
-                        println!("[Connection] Disconnected from peer: {} (cause: {:?})", peer_id, cause);
+                        info!("[Connection] Disconnected from peer: {} (cause: {:?})", peer_id, cause);
                         // If disconnected from node_b, reset flag to allow reconnection
                         if bootstrap_peer_id.map(|id| id != peer_id).unwrap_or(true) {
                             connected_to_b = false;
@@ -317,16 +302,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 info!("[Response] Received unexpected request from {}", peer);
                             }
                             request_response::Message::Response { request_id, response } => {
-                                println!("[Response] Received P2P response for request {:?} from {}", request_id, peer);
-                                println!("[Response] Response data: {:?}", response);
                                 info!("[Response] Received P2P response for request {:?} from {}", request_id, peer);
+                                info!("[Response] Response data: {:?}", response);
                                 
                                 if response.success {
-                                    println!("✅ Request successful!");
                                     info!("✅ Request successful! Data: {}", 
                                         serde_json::to_string_pretty(&response.data).unwrap_or_default());
                                 } else {
-                                    println!("❌ Request failed: {:?}", response.data);
                                     warn!("❌ Request failed: {:?}", response.data);
                                 }
                                 
@@ -342,8 +324,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                     }),
                                 };
                                 
-                                println!("[Request] Sending next P2P request to {}: {:?}", peer, next_request);
-                                info!("[Request] Sending next P2P request: {:?}", next_request);
+                                info!("[Request] Sending next P2P request to {}: {:?}", peer, next_request);
                                 swarm.behaviour_mut().request_response.send_request(&peer, next_request);
                             }
                         }
@@ -369,12 +350,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         }
                     }
                     SwarmEvent::NewListenAddr { address, .. } => {
-                        println!("[Swarm] P2P listening on {}", address);
-                        println!("[Swarm] Node A multiaddr: {}/p2p/{}", address, swarm.local_peer_id());
+                        info!("[Swarm] P2P listening on {}", address);
+                        info!("[Swarm] Node A multiaddr: {}/p2p/{}", address, swarm.local_peer_id());
                         info!("[Swarm] P2P listening on {}", address);
                     }
                     SwarmEvent::IncomingConnection { send_back_addr, .. } => {
-                        println!("[Swarm] Incoming P2P connection from {}", send_back_addr);
+                        info!("[Swarm] Incoming P2P connection from {}", send_back_addr);
                     }
                     other => {
                         tracing::trace!("[Swarm] Other event: {:?}", other);
@@ -384,13 +365,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
             // Periodic discovery attempt via Kademlia
             _ = tokio::time::sleep(Duration::from_secs(30)) => {
                 if bootstrap_connected && !connected_to_b {
-                    println!("[Discovery] Attempting to discover peers via Kademlia...");
-                    println!("[Discovery] Current state: bootstrap_peer_id={:?}, identified_node_b={:?}, connected_to_b={}", 
+                    info!("[Discovery] Attempting to discover peers via Kademlia...");
+                    info!("[Discovery] Current state: bootstrap_peer_id={:?}, identified_node_b={:?}, connected_to_b={}", 
                         bootstrap_peer_id, identified_node_b, connected_to_b);
                     // Try to find peers close to our own peer_id
                     swarm.behaviour_mut().kademlia.get_closest_peers(local_peer_id);
                 } else if !bootstrap_connected {
-                    println!("[Discovery] Waiting for bootstrap connection...");
+                    info!("[Discovery] Waiting for bootstrap connection...");
                 }
             }
         }
