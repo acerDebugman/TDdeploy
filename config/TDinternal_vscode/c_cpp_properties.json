@@ -1,0 +1,32 @@
+{
+    "configurations": [
+        {
+            "name": "TDengine-Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/community/include",
+                "${workspaceFolder}/community/source",
+                "${workspaceFolder}/community/source/client/inc",
+                "${workspaceFolder}/community/source/util/inc",
+                "${workspaceFolder}/community/source/common/inc",
+                "${workspaceFolder}/community/source/os/inc",
+                "${workspaceFolder}/deps/**",
+                "${workspaceFolder}/debug/**"
+            ],
+            "defines": [
+                "_GNU_SOURCE",
+                "LINUX",
+                "_REENTRANT",
+                "TSDB_REPS_DEF=3"
+            ],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "linux-clang-x64",
+            "compileCommands": "${workspaceFolder}/debug/compile_commands.json",
+            "configurationProvider": "ms-vscode.cmake-tools"
+        }
+    ],
+    "version": 4
+}

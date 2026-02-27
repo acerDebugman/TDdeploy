@@ -235,6 +235,20 @@ BehaviourEvent: Event { peer: PeerId("12D3KooWB3mTEfi3tvZNw3kt5Q2yYb9JQyT2sKoAev
 
 
 
+3节点测试:
+
+```
+158:
+./target/debug/node_b 10001 8080 /ip4/192.168.126.85/tcp/9090/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN
+
+local:
+./target/debug/bootstrap
+
+./target/debug/node_a 10002 /ip4/192.168.126.85/tcp/9090/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN /ip4/192.168.2.158/tcp/10001/p2p/12D3KooWGjxVp88DuWx6P6cN5ZLtud51TNWK6a7K1h9cYb8qDuci
+```
+
+
+
 
 
 

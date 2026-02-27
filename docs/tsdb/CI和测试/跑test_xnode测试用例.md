@@ -5,7 +5,7 @@ TDinternal 环境安装：
 ```
 apt install python3.10-venv
 
-cd /app/TDinternal/community/test
+cd /home/algo/rust_space/TDinternal/community/test
 
 python3 -m venv .venv
 
@@ -17,8 +17,10 @@ uv 安装：
 uv pip install -r requirements.txt
 
 
-cd /app/TDinternal/community/test
+cd /home/algo/rust_space/TDinternal/community/test
+rm -rf /home/algo/rust_space/TDinternal/sim/*
 pytest cases/42-Xnode/test_xnode.py -q
+
 
 # 显示 debug 打印信息：
 LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libasan.so.6 pytest --log-cli-level=DEBUG cases/42-Xnode/test_xnode.py -q
