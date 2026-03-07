@@ -73,6 +73,120 @@ Behavior 是可以组合的，内部通过 poll 方法的各种 feature 叠加�
 
 
 
+
+
+event 的 Request 是接受请求！发送是 send_response !
+
+下面是连续发送的例子，第一个发送是在 established 以后：
+
+```
+SwarmEvent::Behaviour(BehaviourEvent::RequestResponse(
+                        request_response::Event::Message { peer, message, .. }
+                    )) => {
+                        match message {
+                            request_response::Message::Request { .. } => {
+                                info!("[Response] Received unexpected request from {}", peer);
+                            }
+                            request_response::Message::Response { request_id, response } => {
+                                info!("[Response] Received P2P response for request {:?} from {}", request_id, peer);
+                                info!("[Response] Response data: {:?}", response);
+                                
+                                if response.success {
+                                    info!("✅ Request successful! Data: {}", 
+                                        serde_json::to_string_pretty(&response.data).unwrap_or_default());
+                                } else {
+                                    warn!("❌ Request failed: {:?}", response.data);
+                                }
+                                
+                                // Wait a bit then send another request
+                                tokio::time::sleep(Duration::from_secs(3)).await;
+                                
+                                let next_request = P2PRequest {
+                                    method: "calculate".to_string(),
+                                    params: serde_json::json!({
+                                        "a": 10.0,
+                                        "b": 5.0,
+                                        "op": "mul"
+                                    }),
+                                };
+                                
+                                info!("[Request] Sending next P2P request to {}: {:?}", peer, next_request);
+                                swarm.behaviour_mut().request_response.send_request(&peer, next_request);
+                            }
+                        }
+                    }
+```
+
+对端处理 request, 在 request 里使用 send_response 回复：
+
+```
+match message {
+                            request_response::Message::Request { request, channel, .. } => {
+                                info!("Received P2P request from {}: {:?}", peer, request);
+                                
+                                // Call local HTTP API synchronously
+                                let _http_request = HttpRequest {
+                                    action: request.method.clone(),
+                                    data: request.params.clone(),
+                                };
+                                
+                                let _http_url = format!("http://127.0.0.1:{}/api/action", http_port);
+                                
+                                // Create HTTP client and call local API
+                                let client = reqwest::Client::new();
+                                
+                                let response = match tokio::task::block_in_place(|| {
+                                    tokio::runtime::Handle::current().block_on(async {
+                                        client.post(&_http_url).json(&_http_request).send().await
+                                    })
+                                }) {
+                                    Ok(resp) => match tokio::task::block_in_place(|| {
+                                        tokio::runtime::Handle::current().block_on(async {
+                                            resp.json::<HttpResponse>().await
+                                        })
+                                    }) {
+                                        Ok(http_resp) => P2PResponse {
+                                            success: http_resp.success,
+                                            data: http_resp.result.unwrap_or(serde_json::json!({
+                                                "message": http_resp.message
+                                            })),
+                                        },
+                                        Err(e) => P2PResponse {
+                                            success: false,
+                                            data: serde_json::json!({
+                                                "error": format!("Failed to parse HTTP response: {}", e)
+                                            }),
+                                        },
+                                    },
+                                    Err(e) => P2PResponse {
+                                        success: false,
+                                        data: serde_json::json!({
+                                            "error": format!("HTTP request failed: {}", e)
+                                        }),
+                                    },
+                                };
+                                
+                                if let Err(e) = swarm.behaviour_mut().request_response.send_response(channel, response.clone()) {
+                                    info!("Failed to send response: {:?}", e);
+                                } else {
+                                    info!("Sent P2P response to {}: {:?}", peer, response);
+                                }
+                            }
+                            request_response::Message::Response { response, .. } => {
+                                info!("Received P2P response: {:?}", response);
+                            }
+```
+
+
+
+
+
+
+
+
+
+
+
 ## 核心概念
 
 ```
@@ -245,6 +359,14 @@ local:
 ./target/debug/bootstrap
 
 ./target/debug/node_a 10002 /ip4/192.168.126.85/tcp/9090/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN /ip4/192.168.2.158/tcp/10001/p2p/12D3KooWGjxVp88DuWx6P6cN5ZLtud51TNWK6a7K1h9cYb8qDuci
+```
+
+
+
+注意拨号的形式, 必须要带上 peer_id：
+
+```
+/ip4/192.168.126.85/tcp/9090/p2p/12D3KooWDpJ7As7BWAwRMfu1VU2WCqNjvq387JEYKDBj4kx6nXTN
 ```
 
 
