@@ -188,3 +188,26 @@ mysql 相关：
 
 
 
+
+
+158 bug修复：
+
+```
+我要测试 test_mysql_task_basic_case1，运行这个测试用例的方法如下：
+cd /root/zgc/dev/taosx/tests/integration
+source setenv.sh.dev
+cargo test --features test-mysql --lib datasources::mysql::tests::test_mysql_task_basic_case1
+
+运行后的日志在 /var/log/taos/taosx* 开头的日志里。当前日志是：/var/log/taos/taosx_16_20260309.log，如果 systemctl restart taosx 后，就会产生新的 taosx 日志文件，比如：/var/log/taos/taosx_16_20260309.log.1 等。
+你可以修改当前 taosx 项目，修改后使用执行 sh deploy_taosx.sh 脚本部署 taosx。
+
+任务功能是从 MySQL 导入数据到本地的 taosd 数据库，查询数据可以使用 taos -s "sql"命令查看数据库的数据。
+
+排查 test_mysql_task_basic_case1 遇到的问题，修复相关问题，让测试用例可以跑通
+
+
+
+```
+
+
+

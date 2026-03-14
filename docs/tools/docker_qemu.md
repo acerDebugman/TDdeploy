@@ -141,3 +141,26 @@ skills:
 
 
 
+## 装 windows
+
+```
+docker run -d \
+  --name windows-vm \
+  --rm \
+  --privileged \
+  --cap-add NET_ADMIN \
+  -p 8006:8006 \
+  -p 2222:22 \
+  -v /home/algo/docker/vm/windows:/storage \
+  -v /home/algo/docker/vm/windows/winserver_2019.iso:/boot.iso \
+  -e RAM_SIZE=32G \
+  -e CPU_CORES=20 \
+  -e DISK_SIZE=100G \
+  --device /dev/kvm \
+  qemux/qemu:latest
+```
+
+
+
+
+

@@ -87,6 +87,11 @@ LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libasan.so.6 pytest --log-cli-level=DEBUG c
 
 
 
+- **在使用手动触发模式时，需要确保 TDengine 和 TDinternal 创建的源****分支名称一致，workflow 中会将 TDinternal 切换到 PR 的源**分支**，TDengine 切换到目标*\**分支**同时 merge PR 的更新至目标**分支
+- **提交 PR 时，确保已经 merge 目标**分支的最新代码，尤其是最新的 workflow 文件，否则会使用旧的 workflow 文件导致失败
+
+
+
 refer:
 
 https://taosdata.feishu.cn/wiki/DnKCwivMhivMl4k4QLGce86AnVb

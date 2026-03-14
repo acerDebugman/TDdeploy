@@ -4,6 +4,24 @@
 
 Claude Code：完成安装:
 
+```
+# 安装 fnm
+cargo install fnm
+
+# 添加到 PATH（cargo 默认安装到 ~/.cargo/bin）
+echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.bashrc
+echo 'eval "$(fnm env)"' >> ~/.bashrc
+source ~/.bashrc
+
+fnm install 24
+fnm default 24
+fnm use 24
+
+npm install -g pnpm
+```
+
+
+
 
 ```Shell
 pnpm install @anthropic-ai/claude-code
@@ -110,12 +128,44 @@ pnpm install -g @executeautomation/playwright-mcp-server
 
 
 
-命令行开启全授权：
+命令行开启全授权, 在 root 下不行
 
 ```
 claude --dangerously-skip-permissions
 ```
 
+另外一种配置：
+
+```
+{
+  "env": {
+    "ANTHROPIC_AUTH_TOKEN": "sk-nEGnvyieK9nesSlsXf8rEumXm8Rzun23O2oOqCnH09LlQJvH",
+    "ANTHROPIC_BASE_URL": "https://aiberm.com"
+  },
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(*)",
+      "Bash(*)",
+      "Edit(*)",
+      "Write(*)",
+      "Read(*)"
+    ],
+    "deny": [
+      "Bash(sudo *)",
+      "Bash(rm -rf /)",
+      "Bash(curl *|*sh)",
+      "Bash(wget *|*sh)"
+    ],
+    "ask": []
+  },
+  "model": "opus",
+  "enabledPlugins": {
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "ralph-loop@claude-plugins-official": true
+  }
+}
+```
 
 
 
@@ -127,6 +177,44 @@ claude --dangerously-skip-permissions
 
 
 
+
+
+
+
+
+
+## 替换为 Kimi
+
+
+
+```
+{                                                                                                                                                                                                           
+  "env": {
+    "ANTHROPIC_AUTH_TOKEN": "sk-kimi-VV1biy303tlyPehBKu1e8T2HstMeizlATGfgFk7OWlQvRa0y9UyeMofR5U0QtutN",
+    "ANTHROPIC_BASE_URL": "https://api.kimi.com/coding/" 
+  },                                                                                                                                                                                                        
+  "permissions": {                                                                                                                                                                                          
+    "allow": [
+      "WebSearch",
+      "WebFetch(*)",
+      "Bash(*)",
+      "Edit(*)",
+      "Write(*)",
+      "Read(*)"
+    ],
+    "deny": [
+      "Bash(rm -rf /)"
+    ],
+    "ask": []
+  },
+  "model": "opus",
+  "enabledPlugins": {
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "ralph-loop@claude-plugins-official": true
+  }
+}
+
+```
 
 
 
